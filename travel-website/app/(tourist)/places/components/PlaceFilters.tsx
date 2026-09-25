@@ -24,15 +24,6 @@ type CategoryOption = {
   label: string;
 };
 
-/*
- * Vietmap POI category codes.
- *
- * Không chọn category = vẫn search toàn bộ:
- * POI + ADDRESS + STREET + CITY + WARD...
- *
- * Các mã dưới đây dùng cho filter POI.
- * Vietmap sử dụng tham số `cats` để lọc POI.
- */
 const CATEGORY_OPTIONS: CategoryOption[] = [
   {
     value: "",
@@ -102,18 +93,13 @@ function AdminComboBox({
     function handleOutside(event: MouseEvent) {
       if (
         ref.current &&
-        !ref.current.contains(
-          event.target as Node
-        )
+        !ref.current.contains(event.target as Node)
       ) {
         setOpen(false);
       }
     }
 
-    document.addEventListener(
-      "mousedown",
-      handleOutside
-    );
+    document.addEventListener("mousedown", handleOutside);
 
     return () => {
       document.removeEventListener(
@@ -126,46 +112,98 @@ function AdminComboBox({
   return (
     <div
       ref={ref}
-      className={`places-combobox ${
-        disabled
-          ? "places-combobox-disabled"
-          : ""
-      }`}
+      className={`
+        relative min-w-0
+        min-[901px]:flex-1
+        ${disabled ? "opacity-50" : ""}
+      `}
     >
       <button
         type="button"
-        className="places-combobox-trigger"
         disabled={disabled}
-        onClick={() =>
-          setOpen((current) => !current)
-        }
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="
+          flex min-h-[46px] w-full
+          items-center justify-between
+          gap-[10px]
+          rounded-[11px]
+          border border-slate-200
+          bg-white
+          px-[13px]
+          text-left
+          text-[13px]
+          font-[550]
+          text-slate-700
+          outline-none
+          transition-[background,border-color,box-shadow]
+          duration-150
+          hover:border-slate-300
+          hover:bg-slate-50
+          focus-visible:border-indigo-400
+          focus-visible:shadow-[0_0_0_3px_rgba(99,102,241,0.08)]
+          disabled:cursor-not-allowed
+        "
       >
         <span
-          className={
-            selected
-              ? "places-combobox-value"
-              : "places-combobox-placeholder"
-          }
+          className={`
+            min-w-0 flex-1 truncate
+            ${
+              selected
+                ? "font-semibold text-slate-700"
+                : "font-normal text-slate-400"
+            }
+          `}
         >
-          {selected?.name_with_type ||
-            placeholder}
+          {selected?.name_with_type || placeholder}
         </span>
 
         <span
-          className={`places-combobox-chevron ${
-            open
-              ? "places-combobox-chevron-open"
-              : ""
-          }`}
+          className={`
+            flex h-[22px] w-[22px]
+            shrink-0
+            items-center justify-center
+            text-[13px]
+            text-slate-400
+            transition-transform
+            duration-200
+            ${open ? "rotate-180" : ""}
+          `}
         >
           ↓
         </span>
       </button>
 
       {open && !disabled && (
-        <div className="places-combobox-menu">
-          <div className="places-combobox-search">
-            <span>⌕</span>
+        <div
+          className="
+            absolute
+            left-0 right-0
+            top-[calc(100%+8px)]
+            z-[300]
+            min-w-[240px]
+            overflow-hidden
+            rounded-[14px]
+            border border-slate-200
+            bg-white
+            shadow-[0_18px_45px_rgba(15,23,42,0.13),0_4px_12px_rgba(15,23,42,0.05)]
+          "
+        >
+          <div
+            className="
+              mx-2 mt-2
+              flex h-[38px]
+              items-center
+              gap-2
+              rounded-[9px]
+              border border-slate-200
+              bg-slate-50
+              px-[10px]
+            "
+          >
+            <span className="text-[15px] text-slate-400">
+              ⌕
+            </span>
 
             <input
               autoFocus
@@ -174,12 +212,22 @@ function AdminComboBox({
                 setKeyword(event.target.value)
               }
               placeholder="Tìm kiếm..."
+              className="
+                h-full min-w-0 flex-1
+                border-0
+                bg-transparent
+                p-0
+                text-[13px]
+                text-slate-700
+                outline-none
+                placeholder:text-slate-400
+              "
             />
           </div>
 
-          <div className="places-combobox-options">
+          <div className="max-h-[270px] overflow-y-auto px-[7px] pb-[7px] pt-[3px]">
             {filteredOptions.length === 0 ? (
-              <div className="places-combobox-empty">
+              <div className="px-[10px] py-[18px] text-center text-[13px] text-slate-400">
                 Không tìm thấy
               </div>
             ) : (
@@ -187,16 +235,26 @@ function AdminComboBox({
                 <button
                   key={item.code}
                   type="button"
-                  className={`places-combobox-option ${
-                    item.code === value
-                      ? "places-combobox-option-active"
-                      : ""
-                  }`}
                   onClick={() => {
                     onChange(item.code);
                     setKeyword("");
                     setOpen(false);
                   }}
+                  className={`
+                    block w-full
+                    rounded-[8px]
+                    border-0
+                    px-[10px]
+                    py-[10px]
+                    text-left
+                    text-[13px]
+                    transition-colors
+                    ${
+                      item.code === value
+                        ? "bg-indigo-50 font-[650] text-indigo-600"
+                        : "bg-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }
+                  `}
                 >
                   {item.name_with_type}
                 </button>
@@ -213,14 +271,9 @@ export default function PlaceFilters({
   value,
   onChange,
 }: PlaceFiltersProps) {
-  const [provinces, setProvinces] =
-    useState<AdminOption[]>([]);
-
-  const [wards, setWards] =
-    useState<AdminOption[]>([]);
-
-  const [loadingAdmin, setLoadingAdmin] =
-    useState(true);
+  const [provinces, setProvinces] = useState<AdminOption[]>([]);
+  const [wards, setWards] = useState<AdminOption[]>([]);
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -269,10 +322,7 @@ export default function PlaceFilters({
               ...data,
             }))
             .sort((a, b) =>
-              a.name.localeCompare(
-                b.name,
-                "vi"
-              )
+              a.name.localeCompare(b.name)
             );
 
         const wardList: AdminOption[] =
@@ -282,10 +332,7 @@ export default function PlaceFilters({
               ...data,
             }))
             .sort((a, b) =>
-              a.name.localeCompare(
-                b.name,
-                "vi"
-              )
+              a.name.localeCompare(b.name)
             );
 
         setProvinces(provinceList);
@@ -320,9 +367,7 @@ export default function PlaceFilters({
     );
   }, [wards, value.cityId]);
 
-  function handleProvinceChange(
-    cityId: string
-  ) {
+  function handleProvinceChange(cityId: string) {
     onChange({
       cityId,
       wardId: "",
@@ -330,18 +375,14 @@ export default function PlaceFilters({
     });
   }
 
-  function handleWardChange(
-    wardId: string
-  ) {
+  function handleWardChange(wardId: string) {
     onChange({
       ...value,
       wardId,
     });
   }
 
-  function handleCategoryChange(
-    category: string
-  ) {
+  function handleCategoryChange(category: string) {
     onChange({
       ...value,
       category,
@@ -356,26 +397,59 @@ export default function PlaceFilters({
     });
   }
 
-  const hasActiveFilters =
-    Boolean(
-      value.cityId ||
-        value.wardId ||
-        value.category
-    );
+  const hasActiveFilters = Boolean(
+    value.cityId ||
+      value.wardId ||
+      value.category
+  );
+
+  const categoryOptions: AdminOption[] =
+    CATEGORY_OPTIONS.map((item) => ({
+      code: item.value,
+      name: item.label,
+      name_with_type: item.label,
+      slug: item.value,
+      type: "category",
+    }));
 
   if (loadingAdmin) {
     return (
-      <div className="places-filters">
-        <div className="places-filter-skeleton" />
-        <div className="places-filter-skeleton" />
-        <div className="places-filter-skeleton" />
-        <div className="places-filter-skeleton places-filter-reset-skeleton" />
+      <div
+        className="
+          grid grid-cols-2
+          gap-[10px]
+          min-[901px]:flex
+          max-[600px]:gap-2
+          max-[420px]:grid-cols-1
+        "
+      >
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="
+              min-h-[46px]
+              flex-1
+              rounded-[11px]
+              bg-[linear-gradient(90deg,#f1f5f9_25%,#e2e8f0_50%,#f1f5f9_75%)]
+              [background-size:200%_100%]
+              animate-places-filter-shimmer
+            "
+          />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="places-filters">
+    <div
+      className="
+        grid grid-cols-2
+        gap-[10px]
+        min-[901px]:flex
+        max-[600px]:gap-2
+        max-[420px]:grid-cols-1
+      "
+    >
       <AdminComboBox
         value={value.cityId}
         options={provinces}
@@ -398,29 +472,44 @@ export default function PlaceFilters({
       <AdminComboBox
         value={value.category}
         placeholder="Tất cả loại địa điểm"
-        options={CATEGORY_OPTIONS.map(
-          (item) => ({
-            code: item.value,
-            name: item.label,
-            name_with_type: item.label,
-            slug: item.value,
-            type: "category",
-          })
-        )}
+        options={categoryOptions}
         onChange={handleCategoryChange}
       />
 
       <button
         type="button"
-        className={`places-filter-reset ${
-          !hasActiveFilters
-            ? "places-filter-reset-disabled"
-            : ""
-        }`}
         disabled={!hasActiveFilters}
         onClick={resetFilters}
+        className="
+          inline-flex
+          min-h-[46px]
+          w-full
+          items-center
+          justify-center
+          gap-[7px]
+          rounded-[11px]
+          border border-slate-200
+          bg-white
+          px-[15px]
+          text-[13px]
+          font-[650]
+          text-slate-500
+          transition-[background,border-color,transform]
+          duration-150
+          hover:border-slate-300
+          hover:bg-slate-50
+          hover:text-slate-700
+          hover:-translate-y-px
+          disabled:cursor-not-allowed
+          disabled:opacity-[0.45]
+          min-[901px]:w-auto
+          min-[901px]:shrink-0
+        "
       >
-        <span>↺</span>
+        <span className="text-[17px] leading-none">
+          ↺
+        </span>
+
         Đặt lại
       </button>
     </div>

@@ -126,11 +126,15 @@ function LocationDropdown({ value, onChange, placeholder, usedIds, index, total 
       {/* ── Dropdown list ───────────────────────────────────────── */}
       {open && (
         <div
-          className="absolute left-0 right-0 top-full mt-1 rounded-xl shadow-xl border overflow-hidden"
+          className="absolute left-0 right-0 top-full mt-1 rounded-xl shadow-xl border"
           style={{
             background: "#fff",
             borderColor: C.light,
             zIndex: 9999,
+            maxHeight: "220px",
+            overflowY: "auto",
+            overflowX: "hidden",
+            borderRadius: "0.75rem",
           }}
         >
           {/* Clear selection */}
@@ -236,6 +240,8 @@ export default function RouteControlPanel({
   onClearError,
 }: RouteControlPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
+  // Track overflow for animation container: hidden during transition, visible when fully expanded
+  const [bodyOverflow, setBodyOverflow] = useState<"hidden" | "visible">("visible");
 
   // ── Drag & drop state ─────────────────────────────────────────────────
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -325,7 +331,10 @@ export default function RouteControlPanel({
               </div>
             </div>
             <button
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => {
+                if (!collapsed) setBodyOverflow("hidden"); // hide before collapsing
+                setCollapsed((c) => !c);
+              }}
               className="p-1.5 rounded-lg transition-all"
               style={{ color: C.light }}
               onMouseEnter={(e) =>
@@ -351,8 +360,12 @@ export default function RouteControlPanel({
             gridTemplateRows: collapsed ? "0fr" : "1fr",
             transition: "grid-template-rows 350ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
+          onTransitionEnd={() => {
+            // Restore visible overflow after expand animation so dropdowns aren't clipped
+            if (!collapsed) setBodyOverflow("visible");
+          }}
         >
-          <div style={{ overflow: "hidden" }}>
+          <div style={{ overflow: bodyOverflow }}>
           <div className="p-3.5 space-y-3">
             {/* ── Waypoint List ──────────────────────────────── */}
             <div>

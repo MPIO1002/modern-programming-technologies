@@ -6,10 +6,6 @@ export async function GET(request: NextRequest) {
   const text = searchParams.get("text");
   const focus = searchParams.get("focus");
 
-  const cityId = searchParams.get("cityId");
-  const wardId = searchParams.get("wardId");
-  const cats = searchParams.get("cats");
-
   if (!text || text.trim().length < 2) {
     return NextResponse.json([]);
   }
@@ -39,20 +35,6 @@ export async function GET(request: NextRequest) {
 
   if (focus) {
     vietmapUrl.searchParams.set("focus", focus);
-  }
-
-  if (cityId) {
-    vietmapUrl.searchParams.set("cityId", cityId);
-    vietmapUrl.searchParams.set("admin_new", "true");
-  }
-
-  if (wardId) {
-    vietmapUrl.searchParams.set("wardId", wardId);
-    vietmapUrl.searchParams.set("admin_new", "true");
-  }
-
-  if (cats) {
-    vietmapUrl.searchParams.set("cats", cats);
   }
 
   try {

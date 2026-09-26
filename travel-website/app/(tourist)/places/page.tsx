@@ -1,31 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PlaceSearch from "./components/PlaceSearch";
-import type { PlaceFiltersValue } from "./components/types";
+import PlaceExplorer from "./components/PlaceExplorer";
+import type { Place } from "./components/types";
+
+const API_URL =
+  "https://6ab765359b03155d080883c1.mockapi.io/places";
 
 export default function PlacesPage() {
-  const [filters, setFilters] = useState<PlaceFiltersValue>({
-    cityId: "",
-    wardId: "",
-    category: "",
-  });
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchPlaces() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(API_URL);
+
+        if (!res.ok) {
+          throw new Error("Không thể lấy dữ liệu địa điểm");
+        }
+
+        const data: Place[] = await res.json();
+
+        setPlaces(data);
+      } catch (error) {
+        console.error(error);
+        setError("Không thể tải danh sách địa điểm.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPlaces();
+  }, []);
 
   return (
     <main
       className="
         min-h-screen overflow-hidden
         bg-[#f8fafc]
-        px-6 pb-[100px] pt-[72px]
+        pb-[100px]
+        pt-[72px]
         text-slate-900
         font-sans
         [background:radial-gradient(circle_at_50%_-10%,rgba(99,102,241,0.12),transparent_35%),#f8fafc]
-        max-[600px]:px-4
         max-[600px]:pb-[70px]
         max-[600px]:pt-12
       "
     >
-      <section className="w-full">
+      {/* HERO + VIETMAP SEARCH */}
+      <section className="w-full px-6 max-[600px]:px-4">
         <div className="mx-auto w-full max-w-[1080px]">
           <span
             className="
@@ -49,7 +78,8 @@ export default function PlacesPage() {
               max-[600px]:text-[clamp(38px,12vw,52px)]
             "
           >
-            Tìm một nơi<br />
+            Tìm một nơi
+            <br />
             <span className="text-slate-500">
               bạn muốn đến
             </span>
@@ -70,12 +100,33 @@ export default function PlacesPage() {
             xung quanh bạn.
           </p>
 
-          <PlaceSearch
-            filters={filters}
-            onFiltersChange={setFilters}
-          />
+          {/* VIETMAP SEARCH */}
+          <PlaceSearch />
         </div>
       </section>
+
+      {/* PLACE SYSTEM */}
+      <div className="mt-20 max-[600px]:mt-14">
+        {loading ? (
+          <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+              <p className="text-sm font-medium text-slate-500">
+                Đang tải địa điểm...
+              </p>
+            </div>
+          </section>
+        ) : error ? (
+          <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
+            <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
+              <p className="text-sm font-medium text-red-600">
+                {error}
+              </p>
+            </div>
+          </section>
+        ) : (
+          <PlaceExplorer places={places} />
+        )}
+      </div>
     </main>
   );
 }

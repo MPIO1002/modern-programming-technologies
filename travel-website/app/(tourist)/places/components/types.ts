@@ -16,19 +16,23 @@ export type Suggestion = {
   distance?: number;
 };
 
-export type AdminOption = {
-  code: string;
-  name: string;
-  name_with_type: string;
-  slug: string;
-  type: string;
-  parent_code?: string;
-  path?: string;
-  path_with_type?: string;
-};
-
 export type PlaceFiltersValue = {
   cityId: string;
   wardId: string;
   category: string;
+};
+
+export type Place = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  lat: number;
+  lng: number;
+  category: string;
+  openTime: string;
+  price: string;
+  experience: string;
+  province: number
 };

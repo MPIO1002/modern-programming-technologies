@@ -2,26 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import PlaceFilters from "./PlaceFilters";
-import PlaceList, { PlaceListSkeleton } from "./PlaceList";
+import type { Suggestion } from "./types";
 
-import type {
-  PlaceFiltersValue,
-  Suggestion,
-} from "./types";
-
-type PlaceSearchProps = {
-  filters: PlaceFiltersValue;
-  onFiltersChange: (value: PlaceFiltersValue) => void;
-};
-
-export default function PlaceSearch({
-  filters,
-  onFiltersChange,
-}: PlaceSearchProps) {
+export default function PlaceSearch() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [results, setResults] = useState<Suggestion[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -57,7 +42,6 @@ export default function PlaceSearch({
 
     if (trimmedQuery.length < 2) {
       setSuggestions([]);
-      setResults([]);
       setError("");
       return;
     }
@@ -77,18 +61,6 @@ export default function PlaceSearch({
           params.set("focus", focus);
         }
 
-        if (filters.cityId) {
-          params.set("cityId", filters.cityId);
-        }
-
-        if (filters.wardId) {
-          params.set("wardId", filters.wardId);
-        }
-
-        if (filters.category) {
-          params.set("cats", filters.category);
-        }
-
         const response = await fetch(
           `/api/vietmap/autocomplete?${params.toString()}`,
           {
@@ -104,7 +76,6 @@ export default function PlaceSearch({
 
         const places = Array.isArray(data) ? data : [];
 
-        setResults(places);
         setSuggestions(places);
         setShowResults(true);
       } catch (err) {
@@ -130,13 +101,7 @@ export default function PlaceSearch({
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [
-    query,
-    focus,
-    filters.cityId,
-    filters.wardId,
-    filters.category,
-  ]);
+  }, [query, focus]);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -266,7 +231,6 @@ export default function PlaceSearch({
                 onClick={() => {
                   setQuery("");
                   setSuggestions([]);
-                  setResults([]);
                   setShowResults(false);
                   setCurrentAddress("");
                 }}
@@ -276,42 +240,86 @@ export default function PlaceSearch({
             )}
           </form>
 
+          {/* AUTOCOMPLETE */}
           {showResults && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
-              <div className="max-h-[360px] overflow-y-auto">
+            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
+              <div className="max-h-[420px] overflow-y-auto py-1.5">
                 {suggestions.map((place) => (
                   <button
                     key={place.ref_id}
                     type="button"
-                    className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50"
                     onClick={() => handleSelect(place)}
+                    className="group flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50"
                   >
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-sm text-indigo-600">
+                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-base text-indigo-600">
                       ⌖
                     </span>
 
-                    <span className="min-w-0">
-                      <strong className="block truncate text-sm font-semibold text-slate-900">
-                        {place.name}
-                      </strong>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-semibold leading-5 text-slate-900">
+                        {place.name || place.display}
+                      </span>
 
-                      <small className="mt-1 block text-xs leading-5 text-slate-500">
+                      <span className="mt-1 block line-clamp-2 text-[12px] leading-5 text-slate-500">
                         {formatCurrentAddress(place)}
-                      </small>
+                      </span>
+
+                      {place.categories &&
+                        place.categories.length > 0 && (
+                          <span className="mt-2 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                            {place.categories[0]}
+                          </span>
+                        )}
+                    </span>
+
+                    <span className="mt-2 shrink-0 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-400 transition group-hover:bg-indigo-100 group-hover:text-indigo-600">
+                      <span className="min-[601px]:hidden">
+                        +
+                      </span>
+
+                      <span className="hidden min-[601px]:inline">
+                        + Thêm
+                      </span>
                     </span>
                   </button>
                 ))}
               </div>
             </div>
           )}
+
+          {/* LOADING */}
+          {showResults &&
+            loading &&
+            query.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
+                <div className="flex items-center gap-3 text-sm text-slate-500">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-indigo-500" />
+                  Đang tìm kiếm...
+                </div>
+              </div>
+            )}
+
+          {/* NO RESULTS */}
+          {showResults &&
+            !loading &&
+            query.trim().length >= 2 &&
+            suggestions.length === 0 &&
+            !error && (
+              <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-2xl border border-slate-200 bg-white px-4 py-5 shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
+                <div className="text-sm text-slate-500">
+                  Không tìm thấy địa điểm.
+                </div>
+              </div>
+            )}
         </div>
 
+        {/* ACTIONS */}
         <div className="grid w-full grid-cols-2 gap-2 min-[901px]:flex min-[901px]:w-auto min-[901px]:shrink-0">
           <button
             type="button"
             onClick={handleCurrentLocation}
             disabled={locationLoading}
-            className="inline-flex h-[52px] min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-[15px] text-[13px] font-[650] text-slate-600 whitespace-nowrap shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-[background,border-color,transform,box-shadow] duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_5px_14px_rgba(15,23,42,0.06)] disabled:cursor-wait disabled:opacity-55"
+            className="inline-flex h-[52px] min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-[15px] text-[13px] font-[650] whitespace-nowrap text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-[background,border-color,transform,box-shadow] duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_5px_14px_rgba(15,23,42,0.06)] disabled:cursor-wait disabled:opacity-55"
           >
             <span className="text-base">⌖</span>
 
@@ -331,7 +339,7 @@ export default function PlaceSearch({
             onClick={() => {
               console.log("Saved places");
             }}
-            className="inline-flex h-[52px] min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-[15px] text-[13px] font-[650] text-slate-600 whitespace-nowrap shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-[background,border-color,transform,box-shadow] duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_5px_14px_rgba(15,23,42,0.06)] disabled:cursor-wait disabled:opacity-55"
+            className="inline-flex h-[52px] min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-[15px] text-[13px] font-[650] whitespace-nowrap text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-[background,border-color,transform,box-shadow] duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_5px_14px_rgba(15,23,42,0.06)] disabled:cursor-wait disabled:opacity-55"
           >
             <span className="text-base">♡</span>
 
@@ -363,102 +371,12 @@ export default function PlaceSearch({
         </div>
       )}
 
-      {/* FILTERS */}
-      <div className="mt-3">
-        <PlaceFilters
-          value={filters}
-          onChange={onFiltersChange}
-        />
-      </div>
-
       {/* ERROR */}
       {error && (
         <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
-
-      {/* RESULTS */}
-      <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_14px_40px_rgba(15,23,42,0.07)]">
-        <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
-          <div>
-            <span className="text-[10px] font-bold tracking-[0.18em] text-indigo-500">
-              KHÁM PHÁ
-            </span>
-
-            <h2 className="mt-1 text-lg font-bold text-slate-950 sm:text-xl">
-              {query.trim()
-                ? "Kết quả tìm kiếm"
-                : "Khám phá địa điểm"}
-            </h2>
-          </div>
-
-          {!loading && results.length > 0 && (
-            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
-              {results.length} kết quả
-            </span>
-          )}
-        </div>
-
-        <div className="p-3 sm:p-4">
-          {loading ? (
-            <PlaceListSkeleton />
-          ) : results.length > 0 ? (
-            <PlaceList
-              places={results}
-              onSelect={handleSelect}
-            />
-          ) : query.trim().length >= 2 ? (
-            <div className="flex min-h-[280px] flex-col items-center justify-center px-5 py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400">
-                ⌕
-              </div>
-
-              <h3 className="mt-4 text-base font-semibold text-slate-900">
-                Không tìm thấy địa điểm
-              </h3>
-
-              <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Thử tìm bằng tên địa điểm, tên đường hoặc địa chỉ
-                khác nhé.
-              </p>
-
-              {(filters.cityId ||
-                filters.wardId ||
-                filters.category) && (
-                <button
-                  type="button"
-                  className="mt-4 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-                  onClick={() =>
-                    onFiltersChange({
-                      cityId: "",
-                      wardId: "",
-                      category: "",
-                    })
-                  }
-                >
-                  Xóa bộ lọc
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="flex min-h-[280px] flex-col items-center justify-center px-5 py-10 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-lg text-indigo-500">
-                ⌖
-              </div>
-
-              <h3 className="mt-4 text-base font-semibold text-slate-900">
-                Bắt đầu khám phá
-              </h3>
-
-              <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                Tìm kiếm địa điểm, địa chỉ hoặc chọn khu vực để khám
-                phá những nơi xung quanh.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
     </section>
   );
 }

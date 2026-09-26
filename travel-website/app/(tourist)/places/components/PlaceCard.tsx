@@ -54,7 +54,7 @@ export default function PlaceCard({ place }: PlaceCardProps) {
 
         {place.openTime && (
           <p className="mt-3 text-xs font-medium text-slate-400">
-            🕐 {place.openTime}
+            Thời gian: {place.openTime}
           </p>
         )}
 

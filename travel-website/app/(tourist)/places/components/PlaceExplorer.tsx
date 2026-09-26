@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlaceCard from "./PlaceCard";
+import PlaceCardSkeleton from "./PlaceCardSkeleton";
 import type { Place } from "./types";
 
 type Province = {
@@ -14,10 +15,12 @@ type Province = {
 
 type PlaceExplorerProps = {
   places: Place[];
+  loading: boolean;
 };
 
 export default function PlaceExplorer({
   places,
+  loading,
 }: PlaceExplorerProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Tất cả");
@@ -44,7 +47,6 @@ export default function PlaceExplorer({
         }
 
         const data = await response.json();
-
         const provinceList = Object.values(data) as Province[];
 
         setProvinces(provinceList);
@@ -70,16 +72,10 @@ export default function PlaceExplorer({
       }
     }
 
-    document.addEventListener(
-      "mousedown",
-      handleOutsideClick
-    );
+    document.addEventListener("mousedown", handleOutsideClick);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick
-      );
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
 
@@ -105,9 +101,7 @@ export default function PlaceExplorer({
   // =========================
 
   const selectedProvince = useMemo(() => {
-    return provinces.find(
-      (item) => item.code === province
-    );
+    return provinces.find((item) => item.code === province);
   }, [provinces, province]);
 
   // =========================
@@ -115,9 +109,7 @@ export default function PlaceExplorer({
   // =========================
 
   const filteredProvinces = useMemo(() => {
-    const keyword = provinceSearch
-      .trim()
-      .toLowerCase();
+    const keyword = provinceSearch.trim().toLowerCase();
 
     if (!keyword) {
       return provinces;
@@ -125,12 +117,8 @@ export default function PlaceExplorer({
 
     return provinces.filter(
       (item) =>
-        item.name
-          .toLowerCase()
-          .includes(keyword) ||
-        item.name_with_type
-          .toLowerCase()
-          .includes(keyword)
+        item.name.toLowerCase().includes(keyword) ||
+        item.name_with_type.toLowerCase().includes(keyword)
     );
   }, [provinces, provinceSearch]);
 
@@ -144,15 +132,9 @@ export default function PlaceExplorer({
     return places.filter((place) => {
       const matchesSearch =
         !keyword ||
-        place.name
-          .toLowerCase()
-          .includes(keyword) ||
-        place.description
-          .toLowerCase()
-          .includes(keyword) ||
-        place.category
-          .toLowerCase()
-          .includes(keyword);
+        place.name.toLowerCase().includes(keyword) ||
+        place.description.toLowerCase().includes(keyword) ||
+        place.category.toLowerCase().includes(keyword);
 
       const matchesCategory =
         category === "Tất cả" ||
@@ -160,15 +142,12 @@ export default function PlaceExplorer({
 
       const matchesPrice =
         price === "Tất cả" ||
-        (price === "Miễn phí" &&
-          place.price === "free") ||
-        (price === "Có phí" &&
-          place.price !== "free");
+        (price === "Miễn phí" && place.price === "free") ||
+        (price === "Có phí" && place.price !== "free");
 
       const matchesProvince =
         !province ||
-        String(place.province) ===
-          String(province);
+        String(place.province) === String(province);
 
       return (
         matchesSearch &&
@@ -177,13 +156,7 @@ export default function PlaceExplorer({
         matchesProvince
       );
     });
-  }, [
-    places,
-    search,
-    category,
-    price,
-    province,
-  ]);
+  }, [places, search, category, price, province]);
 
   // =========================
   // ACTIVE FILTER
@@ -243,9 +216,7 @@ export default function PlaceExplorer({
             <input
               type="text"
               value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
+              onChange={(event) => setSearch(event.target.value)}
               placeholder="Tìm kiếm địa điểm..."
               className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50"
             />
@@ -261,7 +232,7 @@ export default function PlaceExplorer({
             )}
           </div>
 
-          {/* PROVINCE COMBOBOX */}
+          {/* PROVINCE */}
           <div
             ref={provinceRef}
             className="relative w-full min-[900px]:w-[220px]"
@@ -269,23 +240,18 @@ export default function PlaceExplorer({
             <button
               type="button"
               onClick={() => {
-                setProvinceOpen(
-                  (current) => !current
-                );
+                setProvinceOpen((current) => !current);
                 setProvinceSearch("");
               }}
               className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 text-left text-sm font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50"
             >
               <span className="truncate">
-                {selectedProvince?.name ??
-                  "Tất cả tỉnh thành"}
+                {selectedProvince?.name ?? "Tất cả tỉnh thành"}
               </span>
 
               <span
                 className={`ml-2 text-xs text-slate-400 transition-transform ${
-                  provinceOpen
-                    ? "rotate-180"
-                    : ""
+                  provinceOpen ? "rotate-180" : ""
                 }`}
               >
                 ▼
@@ -300,9 +266,7 @@ export default function PlaceExplorer({
                     type="text"
                     value={provinceSearch}
                     onChange={(event) =>
-                      setProvinceSearch(
-                        event.target.value
-                      )
+                      setProvinceSearch(event.target.value)
                     }
                     autoFocus
                     placeholder="Tìm tỉnh thành..."
@@ -311,7 +275,7 @@ export default function PlaceExplorer({
                 </div>
 
                 <div className="max-h-64 overflow-y-auto p-1.5">
-                  {/* ALL */}
+                  {/* ALL PROVINCES */}
                   <button
                     type="button"
                     onClick={() => {
@@ -325,52 +289,42 @@ export default function PlaceExplorer({
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <span>
-                      Tất cả tỉnh thành
-                    </span>
+                    <span>Tất cả tỉnh thành</span>
 
                     {province === "" && (
-                      <span className="text-indigo-600">
-                        ✓
-                      </span>
+                      <span className="text-indigo-600">✓</span>
                     )}
                   </button>
 
-                  {filteredProvinces.map(
-                    (item) => (
-                      <button
-                        key={item.code}
-                        type="button"
-                        onClick={() => {
-                          setProvince(
-                            item.code
-                          );
-                          setProvinceOpen(false);
-                          setProvinceSearch("");
-                        }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                          province ===
-                          item.code
-                            ? "bg-indigo-50 font-semibold text-indigo-700"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                        }`}
-                      >
-                        <span className="truncate">
-                          {item.name}
+                  {/* PROVINCE LIST */}
+                  {filteredProvinces.map((item) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => {
+                        setProvince(item.code);
+                        setProvinceOpen(false);
+                        setProvinceSearch("");
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                        province === item.code
+                          ? "bg-indigo-50 font-semibold text-indigo-700"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      <span className="truncate">
+                        {item.name}
+                      </span>
+
+                      {province === item.code && (
+                        <span className="ml-2 text-indigo-600">
+                          ✓
                         </span>
+                      )}
+                    </button>
+                  ))}
 
-                        {province ===
-                          item.code && (
-                          <span className="ml-2 text-indigo-600">
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    )
-                  )}
-
-                  {filteredProvinces.length ===
-                    0 && (
+                  {filteredProvinces.length === 0 && (
                     <div className="px-3 py-6 text-center text-xs text-slate-400">
                       Không tìm thấy tỉnh thành
                     </div>
@@ -391,9 +345,7 @@ export default function PlaceExplorer({
               <button
                 key={item}
                 type="button"
-                onClick={() =>
-                  setCategory(item)
-                }
+                onClick={() => setCategory(item)}
                 className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ${
                   category === item
                     ? "bg-indigo-600 text-white shadow-sm"
@@ -407,17 +359,11 @@ export default function PlaceExplorer({
 
           {/* PRICE */}
           <div className="flex shrink-0 items-center gap-1 self-start rounded-full bg-slate-100 p-1 min-[760px]:self-auto">
-            {[
-              "Tất cả",
-              "Miễn phí",
-              "Có phí",
-            ].map((item) => (
+            {["Tất cả", "Miễn phí", "Có phí"].map((item) => (
               <button
                 key={item}
                 type="button"
-                onClick={() =>
-                  setPrice(item)
-                }
+                onClick={() => setPrice(item)}
                 className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 ${
                   price === item
                     ? "bg-white text-slate-900 shadow-sm"
@@ -433,68 +379,76 @@ export default function PlaceExplorer({
 
       {/* RESULT INFO */}
       <div className="mt-5 flex items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
-          Tìm thấy{" "}
-          <span className="font-semibold text-slate-800">
-            {filteredPlaces.length}
-          </span>{" "}
-          địa điểm
-          {selectedProvince && (
-            <>
-              {" "}
-              tại{" "}
+        {!loading && (
+          <>
+            <p className="text-sm text-slate-500">
+              Tìm thấy{" "}
               <span className="font-semibold text-slate-800">
-                {selectedProvince.name}
-              </span>
-            </>
-          )}
-        </p>
+                {filteredPlaces.length}
+              </span>{" "}
+              địa điểm
 
-        {hasActiveFilter && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="shrink-0 text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
-          >
-            Xóa bộ lọc
-          </button>
+              {selectedProvince && (
+                <>
+                  {" "}tại{" "}
+                  <span className="font-semibold text-slate-800">
+                    {selectedProvince.name}
+                  </span>
+                </>
+              )}
+            </p>
+
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="shrink-0 text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </>
         )}
       </div>
 
-      {/* CARDS */}
-      {filteredPlaces.length > 0 ? (
-        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPlaces.map((place) => (
-            <PlaceCard
-              key={place.id}
-              place={place}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-16 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl text-slate-400 shadow-sm">
-            ⌕
+      {/* CARDS / SKELETON */}
+      <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {loading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <PlaceCardSkeleton key={index} />
+          ))
+        ) : filteredPlaces.length > 0 ? (
+          filteredPlaces.map((place) => (
+            <PlaceCard key={place.id} place={place} />
+          ))
+        ) : (
+          <div className="col-span-full flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white">
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400">
+                ⌕
+              </div>
+
+              <p className="mt-4 text-sm font-semibold text-slate-700">
+                Không tìm thấy địa điểm
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">
+                Thử thay đổi từ khóa hoặc bộ lọc nhé.
+              </p>
+
+              {hasActiveFilter && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700"
+                >
+                  Xóa bộ lọc
+                </button>
+              )}
+            </div>
           </div>
-
-          <p className="mt-4 text-sm font-semibold text-slate-700">
-            Không tìm thấy địa điểm
-          </p>
-
-          <p className="mt-1 text-xs text-slate-400">
-            Thử thay đổi từ khóa hoặc bộ lọc
-            của bạn.
-          </p>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700"
-          >
-            Xóa bộ lọc
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }

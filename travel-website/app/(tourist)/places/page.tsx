@@ -107,15 +107,7 @@ export default function PlacesPage() {
 
       {/* PLACE SYSTEM */}
       <div className="mt-20 max-[600px]:mt-14">
-        {loading ? (
-          <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
-            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
-              <p className="text-sm font-medium text-slate-500">
-                Đang tải địa điểm...
-              </p>
-            </div>
-          </section>
-        ) : error ? (
+        {error ? (
           <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
             <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
               <p className="text-sm font-medium text-red-600">
@@ -124,7 +116,10 @@ export default function PlacesPage() {
             </div>
           </section>
         ) : (
-          <PlaceExplorer places={places} />
+          <PlaceExplorer
+            places={places}
+            loading={loading}
+          />
         )}
       </div>
     </main>

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 type Place = {
   id: string | number;
+  slug?: string;
   name: string;
   description: string;
   category: string;
@@ -64,7 +65,7 @@ export default function PlaceCard({ place }: PlaceCardProps) {
           </span>
 
           <Link
-            href={`/places/${place.id}`}
+            href={`/places/${place.slug || place.id}`}
             className="text-xs font-bold text-indigo-600 transition hover:text-indigo-800"
           >
             Xem chi tiết →

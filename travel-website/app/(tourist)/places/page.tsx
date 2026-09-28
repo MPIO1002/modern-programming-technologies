@@ -43,7 +43,7 @@ export default function PlacesPage() {
   return (
     <main
       className="
-        min-h-screen overflow-hidden
+        min-h-screen
         bg-[#f8fafc]
         pb-[100px]
         pt-[72px]

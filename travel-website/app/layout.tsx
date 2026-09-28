@@ -19,8 +19,8 @@ export default function RootLayout({ children }: Readonly<{
   children: React.ReactNode; 
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className={`${montserrat.variable} h-full antialiased`}>
-      <body className={`${montserrat.className} h-full flex flex-col`}>
+    <html lang="vi" suppressHydrationWarning className={`${montserrat.variable} antialiased`}>
+      <body className={`${montserrat.className} min-h-screen flex flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

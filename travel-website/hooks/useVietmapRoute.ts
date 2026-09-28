@@ -18,6 +18,7 @@ interface UseVietmapRouteReturn {
   calculateRoute: () => Promise<void>;
   clearRoute: () => void;
   clearError: () => void;
+  setWaypoints: React.Dispatch<React.SetStateAction<(Location | null)[]>>;
 }
 
 export function useVietmapRoute(): UseVietmapRouteReturn {
@@ -121,5 +122,6 @@ export function useVietmapRoute(): UseVietmapRouteReturn {
     calculateRoute,
     clearRoute,
     clearError,
+    setWaypoints,
   };
 }

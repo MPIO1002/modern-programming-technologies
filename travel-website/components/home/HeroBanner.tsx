@@ -19,12 +19,12 @@ export default function HeroBanner() {
           Tích hợp Vietmap API
         </span>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-[#BBE1FA] tracking-tight leading-tight">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-[#BBE1FA] tracking-tight leading-tight">
           Hành Trình Du Lịch Thông Minh <br />
           <span className="text-white">Tối Ưu Tuyến Đường Đi</span>
         </h1>
 
-        <p className="text-[#BBE1FA]/80 text-base sm:text-lg max-w-2xl mx-auto">
+        <p className="text-[#BBE1FA]/80 text-base sm:text-lg max-w-4xl mx-auto">
           Khám phá di tích lịch sử, danh lam thắng cảnh và sắp xếp lịch trình di chuyển khoa học nhất.
         </p>
 

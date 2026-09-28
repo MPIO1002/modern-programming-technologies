@@ -1,7 +1,27 @@
 import Link from 'next/link';
-import { SAMPLE_ITINERARIES } from '@/lib/mockData';
+import { Itinerary } from '@/types/place';
 
-export default function SampleItineraries() {
+const API_BASE_URL = process.env.NEXT_PUBLIC_MOCKAPI_URL;
+
+async function getSampleItineraries(): Promise<Itinerary[]> {
+  if (!API_BASE_URL) return [];
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/itineraries`, {
+      cache: 'no-store', 
+    });
+
+    if (!res.ok) throw new Error('Lỗi fetch itineraries');
+    return await res.json();
+  } catch (error) {
+    console.error('Lỗi khi tải dữ liệu lộ trình:', error);
+    return [];
+  }
+}
+
+export default async function SampleItineraries() {
+  const itineraries = await getSampleItineraries();
+
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto">
       <div className="mb-10 text-center max-w-2xl mx-auto">
@@ -14,7 +34,7 @@ export default function SampleItineraries() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {SAMPLE_ITINERARIES.map((itinerary) => (
+        {itineraries.map((itinerary) => (
           <div
             key={itinerary.id}
             className="p-6 rounded-2xl bg-gradient-to-br from-[#0F4C75]/60 to-[#1B262C] border border-[#3282B8]/40 shadow-xl flex flex-col justify-between"
@@ -39,7 +59,7 @@ export default function SampleItineraries() {
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {itinerary.highlights.map((spot, idx) => (
+                {itinerary.highlights?.map((spot, idx) => (
                   <span
                     key={idx}
                     className="text-xs bg-[#1B262C] text-slate-300 px-3 py-1 rounded-md border border-[#0F4C75]"
@@ -52,7 +72,7 @@ export default function SampleItineraries() {
 
             <div className="mt-6 pt-4 border-t border-[#3282B8]/30">
               <Link
-                href="/trip-planner"
+                href={`/trip-planner?itineraryId=${itinerary.id}`}
                 className="w-full inline-block text-center py-3 bg-[#3282B8] hover:bg-[#0F4C75] text-white font-semibold rounded-xl text-sm transition shadow-md"
               >
                 Mở Trên Bản Đồ Vietmap

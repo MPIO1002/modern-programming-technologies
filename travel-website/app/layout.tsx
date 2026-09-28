@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
   variable: "--font-montserrat",
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -18,8 +19,8 @@ export default function RootLayout({ children }: Readonly<{
   children: React.ReactNode; 
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className="h-full">
-      <body className={`${montserrat.className} ${montserrat.variable} h-full antialiased`}>
+    <html lang="vi" suppressHydrationWarning className={`${montserrat.variable} h-full antialiased`}>
+      <body className={`${montserrat.className} h-full flex flex-col`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

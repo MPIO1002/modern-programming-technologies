@@ -1,11 +1,20 @@
 @import "tailwindcss";
 
+/* ── Brand color palette ───────────────────────────────────────────────── */
 :root {
   --bg-main: #f8fafc;
   --bg-card: #FCF1D0;
   --text-main: #010736;
   --text-muted: #22396F;
   --accent: #0F4C75;
+
+  --brand-darkest: #1b262c;   /* Dark navy   – header, dark text      */
+  --brand-dark:    #0f4c75;   /* Deep blue   – primary buttons/accent */
+  --brand-mid:     #3282b8;   /* Medium blue – secondary / hover      */
+  --brand-light:   #bbe1fa;   /* Sky blue    – backgrounds / badges   */
+
+  --background: #f4f8fb;
+  --foreground: #1b262c;
 }
 .dark {
   --bg-main: #1B262C;
@@ -15,11 +24,11 @@
   --accent: #3282B8;
 }
 
+/* ── Tailwind v4 theme tokens ──────────────────────────────────────────── */
 @theme inline {
   --color-background: var(--bg-main);
   --color-foreground: var(--text-main);
-
-  --font-sans: var(--font-montserrat);
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
 
   --animate-places-shimmer: places-shimmer 1.4s infinite;
   --animate-places-filter-shimmer: places-filter-shimmer 1.4s infinite;
@@ -29,17 +38,16 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
+  font-family: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   transition: background-color 0.3s ease, color 0.3s ease;
-  font-family: var(--font-montserrat), Arial, Helvetica, sans-serif;
 }
 
 button,
@@ -49,6 +57,9 @@ select {
   font: inherit;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
 button:disabled {
   cursor: not-allowed;
 }
@@ -71,4 +82,39 @@ button:disabled {
   to {
     transform: translateX(100%);
   }
+}
+
+/* ── Animation utilities for control panel ─────────────────────────────── */
+@keyframes slide-in-from-top {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-from-bottom {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-in-from-top-2    { animation-name: slide-in-from-top; }
+.slide-in-from-bottom-2 { animation-name: slide-in-from-bottom; }
+.duration-300 { animation-duration: 300ms; }
+
+/* ── Leaflet z-index fixes ─────────────────────────────────────────────── */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-map-pane svg,
+.leaflet-map-pane canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
 }

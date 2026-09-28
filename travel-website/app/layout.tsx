@@ -18,9 +18,8 @@ export default function RootLayout({ children }: Readonly<{
   children: React.ReactNode; 
 }>) {
   return (
-    <html
-      lang="vi" suppressHydrationWarning>
-      <body className={`${montserrat.className} antialiased`}>
+    <html lang="vi" suppressHydrationWarning className="h-full">
+      <body className={`${montserrat.className} ${montserrat.variable} h-full antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{
           disableTransitionOnChange>
             {children}
         </ThemeProvider>
-        </body>
+      </body>
     </html>
   );
 }

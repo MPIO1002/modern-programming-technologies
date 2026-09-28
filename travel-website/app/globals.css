@@ -15,8 +15,60 @@
   --accent: #3282B8;
 }
 
+@theme inline {
+  --color-background: var(--bg-main);
+  --color-foreground: var(--text-main);
+
+  --font-sans: var(--font-montserrat);
+
+  --animate-places-shimmer: places-shimmer 1.4s infinite;
+  --animate-places-filter-shimmer: places-filter-shimmer 1.4s infinite;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--font-montserrat), Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes places-filter-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes places-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
 }

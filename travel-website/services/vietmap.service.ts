@@ -1,7 +1,5 @@
 import type { Vehicle, VietmapRouteResponse, RouteInfo } from "@/types/vietmap";
 
-const ROUTE_API_BASE = "https://maps.vietmap.vn/api/route/v4";
-
 export class VietmapApiError extends Error {
   constructor(
     message: string,
@@ -13,29 +11,23 @@ export class VietmapApiError extends Error {
 }
 
 /**
- * Calls Vietmap Route API v4 with N ordered waypoints.
+ * Calls internal proxy API which calls Vietmap Route API v4 with N ordered waypoints.
  */
 export async function fetchVietmapRoute(
-  apiKey: string,
   waypoints: Array<{ lat: number; lng: number }>,
   vehicle: Vehicle
 ): Promise<RouteInfo> {
-  if (!apiKey.trim()) {
-    throw new VietmapApiError("Chưa cấu hình NEXT_PUBLIC_VIETMAP_API_KEY trong .env.local.");
-  }
   if (waypoints.length < 2) {
     throw new VietmapApiError("Cần ít nhất 2 địa điểm để tính đường.");
   }
 
-  const url = new URL(ROUTE_API_BASE);
-  url.searchParams.set("apikey", apiKey);
-  for (const wp of waypoints) {
-    url.searchParams.append("point", `${wp.lat},${wp.lng}`);
-  }
-  url.searchParams.set("points_encoded", "false");
-  url.searchParams.set("vehicle", vehicle);
-
-  const response = await fetch(url.toString());
+  const response = await fetch("/api/vietmap/route", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ waypoints, vehicle }),
+  });
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {

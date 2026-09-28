@@ -4,8 +4,6 @@ import { useState, useCallback } from "react";
 import type { Location, Vehicle, RouteInfo } from "@/types/vietmap";
 import { fetchVietmapRoute, VietmapApiError } from "@/services/vietmap.service";
 
-const VIETMAP_API_KEY = process.env.NEXT_PUBLIC_VIETMAP_API_KEY ?? "";
-
 interface UseVietmapRouteReturn {
   waypoints: (Location | null)[];
   vehicle: Vehicle;
@@ -88,18 +86,12 @@ export function useVietmapRoute(): UseVietmapRouteReturn {
       return;
     }
 
-    if (!VIETMAP_API_KEY) {
-      setError("Chưa cấu hình NEXT_PUBLIC_VIETMAP_API_KEY trong .env.local.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setRouteInfo(null);
 
     try {
       const result = await fetchVietmapRoute(
-        VIETMAP_API_KEY,
         filled.map((w) => ({ lat: w.lat, lng: w.lng })),
         vehicle
       );

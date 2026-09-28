@@ -10,27 +10,39 @@ export default function AddToItineraryButton({ placeId }: Props) {
   const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
-    const savedList: number[] = JSON.parse(localStorage.getItem('my_list') || '[]');
-    if (savedList.includes(placeId)) {
-      setIsAdded(true);
-    }
+    const checkAdded = () => {
+      const savedList: number[] = JSON.parse(localStorage.getItem('my_list') || '[]');
+      if (savedList.includes(Number(placeId))) {
+        setIsAdded(true);
+      } else {
+        setIsAdded(false);
+      }
+    };
+    
+    checkAdded();
+    window.addEventListener("itinerary_updated", checkAdded);
+    return () => window.removeEventListener("itinerary_updated", checkAdded);
   }, [placeId]);
 
   // Hàm xử lý khi bấm nút
   const handleClick = () => {
     const savedList: number[] = JSON.parse(localStorage.getItem('my_list') || '[]');
+    const numericId = Number(placeId);
 
     if (isAdded) {
         //true thì xóa
-        const newList = savedList.filter((id: number) => id !== placeId);
+        const newList = savedList.filter((id: number) => id !== numericId);
         localStorage.setItem('my_list', JSON.stringify(newList));
         setIsAdded(false);
     } else {
         //false thì thêm
-        const newList = [...savedList, placeId];
+        const newList = [...savedList, numericId];
         localStorage.setItem('my_list', JSON.stringify(newList));
         setIsAdded(true);
     }
+    
+    // Thông báo cho Sidebar cập nhật
+    window.dispatchEvent(new Event('itinerary_updated'));
   };
 
   return (

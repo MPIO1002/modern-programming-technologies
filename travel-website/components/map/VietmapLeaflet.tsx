@@ -11,7 +11,7 @@ interface VietmapLeafletProps {
   routeInfo: RouteInfo | null;
 }
 
-const VIETMAP_API_KEY = process.env.NEXT_PUBLIC_VIETMAP_API_KEY ?? "";
+const VIETMAP_API_KEY = process.env.VIETMAP_API_KEY ?? "";
 
 function getTileConfig() {
   if (VIETMAP_API_KEY) {

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MapWrapper from "@/components/map/MapWrapper";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
-import Link from "next/link";
 import type { Location } from "@/types/vietmap";
 
 export default function MapPage() {
@@ -25,29 +24,30 @@ export default function MapPage() {
     setWaypoints,
   } = useVietmapRoute();
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const initRef = useRef(false);
 
   useEffect(() => {
-    async function loadWaypoints() {
-      if (isLoaded) return;
+    if (initRef.current) return;
+    initRef.current = true;
+
+    async function loadSavedPlaces() {
       try {
         const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
         if (savedList.length > 0) {
-          // Fetch places from MockAPI
           const res = await fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places");
           if (res.ok) {
             const data = await res.json();
             const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
             
             if (routePlaces.length > 0) {
-              const newWaypoints = routePlaces.map((p: any) => ({
+              const newWaypoints: (Location | null)[] = routePlaces.map((p: any) => ({
                 id: p.id.toString(),
                 name: p.name,
-                lat: p.lat,
-                lng: p.lng,
+                address: p.ward || p.address || "",
+                lat: Number(p.lat),
+                lng: Number(p.lng),
               }));
               
-              // Ensure at least 2 waypoints by padding with null
               while (newWaypoints.length < 2) {
                 newWaypoints.push(null);
               }
@@ -58,40 +58,35 @@ export default function MapPage() {
         }
       } catch (err) {
         console.error("Lỗi khi tải lộ trình đã lưu:", err);
-      } finally {
-        setIsLoaded(true);
       }
     }
-    loadWaypoints();
-  }, [isLoaded, setWaypoints]);
+    
+    loadSavedPlaces();
+  }, [setWaypoints]);
 
   return (
-    <main className="h-screen w-full relative overflow-hidden">
-      {/* Fullscreen map */}
-      <div className="absolute inset-0">
+    <main className="flex-grow w-full relative h-[calc(100vh-64px)] flex overflow-hidden">
+      {/* Main map area */}
+      <div className="flex-1 relative h-full">
         <MapWrapper waypoints={waypoints} routeInfo={routeInfo} />
+        
+        {/* Floating control panel */}
+        <RouteControlPanel
+          waypoints={waypoints}
+          vehicle={vehicle}
+          routeInfo={routeInfo}
+          loading={loading}
+          error={error}
+          onUpdate={updateWaypoint}
+          onAdd={addWaypoint}
+          onRemove={removeWaypoint}
+          onReorder={reorderWaypoints}
+          onVehicleChange={setVehicle}
+          onCalculate={calculateRoute}
+          onClear={clearRoute}
+          onClearError={clearError}
+        />
       </div>
-
-      <Link href="/" className="absolute top-4 right-4 z-[1000] bg-white dark:bg-[#1B262C] px-4 py-2 rounded-lg shadow-md font-semibold text-[#0F4C75] dark:text-[#BBE1FA] hover:bg-[#BBE1FA] dark:hover:bg-[#3282B8] transition-colors border border-[#0F4C75]/20 dark:border-[#3282B8]/40 text-sm">
-        Trang chủ &rarr;
-      </Link>
-
-      {/* Floating control panel */}
-      <RouteControlPanel
-        waypoints={waypoints}
-        vehicle={vehicle}
-        routeInfo={routeInfo}
-        loading={loading}
-        error={error}
-        onUpdate={updateWaypoint}
-        onAdd={addWaypoint}
-        onRemove={removeWaypoint}
-        onReorder={reorderWaypoints}
-        onVehicleChange={setVehicle}
-        onCalculate={calculateRoute}
-        onClear={clearRoute}
-        onClearError={clearError}
-      />
     </main>
   );
 }

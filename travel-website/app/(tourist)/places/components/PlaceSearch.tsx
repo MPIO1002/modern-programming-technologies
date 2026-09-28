@@ -272,7 +272,55 @@ export default function PlaceSearch() {
                         )}
                     </span>
 
-                    <span className="mt-2 shrink-0 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-400 transition group-hover:bg-indigo-100 group-hover:text-indigo-600">
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const res = await fetch(`/api/vietmap/place?ref_id=${place.ref_id}`);
+                          if (!res.ok) throw new Error("Lỗi khi lấy tọa độ");
+                          const details = await res.json();
+                          
+                          if (!details || !details.lat || !details.lng) {
+                            alert("Không thể lấy tọa độ của địa điểm này");
+                            return;
+                          }
+
+                          const newPlace = {
+                            name: place.name || place.display,
+                            address: formatCurrentAddress(place),
+                            lat: details.lat,
+                            lng: details.lng,
+                            ward: place.categories?.[0] || "Địa điểm Vietmap",
+                            description: "Thêm từ thanh tìm kiếm Vietmap",
+                            category: "1002-6",
+                            price: "free",
+                            thumbnail: ""
+                          };
+
+                          const postRes = await fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(newPlace)
+                          });
+
+                          if (postRes.ok) {
+                            const created = await postRes.json();
+                            const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
+                            if (!savedList.includes(Number(created.id))) {
+                              localStorage.setItem("my_list", JSON.stringify([...savedList, Number(created.id)]));
+                              window.dispatchEvent(new Event("itinerary_updated"));
+                            }
+                            setShowResults(false);
+                            setQuery("");
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert("Đã xảy ra lỗi khi thêm địa điểm");
+                        }
+                      }}
+                      className="mt-2 shrink-0 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-400 transition hover:bg-indigo-100 hover:text-indigo-600"
+                    >
                       <span className="min-[601px]:hidden">
                         +
                       </span>
@@ -280,7 +328,7 @@ export default function PlaceSearch() {
                       <span className="hidden min-[601px]:inline">
                         + Thêm
                       </span>
-                    </span>
+                    </button>
                   </button>
                 ))}
               </div>

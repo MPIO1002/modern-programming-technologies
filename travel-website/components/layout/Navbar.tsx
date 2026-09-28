@@ -10,25 +10,25 @@ export default function Navbar() {
   
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-[#3282B8]/30 bg-white/80 dark:bg-[#1B262C]/80 backdrop-blur-md transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-[#0F4C75] dark:text-[#BBE1FA] font-bold text-xl hover:opacity-80 transition">
-          <FontAwesomeIcon icon={faMapLocationDot} className="w-6 h-6" />
-          <span>Vietmap Travel</span>
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-center gap-10 sm:gap-20">
+        <Link 
+          href="/places" 
+          className={`text-sm font-bold tracking-wide transition ${pathname.startsWith('/places') ? 'text-[#0F4C75] dark:text-[#BBE1FA]' : 'text-slate-500 dark:text-slate-400 hover:text-[#0F4C75] dark:hover:text-[#BBE1FA]'}`}
+        >
+          KHÁM PHÁ
         </Link>
-        <div className="flex items-center gap-6">
-          <Link 
-            href="/places" 
-            className={`text-sm font-semibold transition ${pathname.startsWith('/places') ? 'text-[#0F4C75] dark:text-[#BBE1FA]' : 'text-slate-600 dark:text-slate-300 hover:text-[#0F4C75] dark:hover:text-[#BBE1FA]'}`}
-          >
-            Khám phá
-          </Link>
-          <Link 
-            href="/map" 
-            className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-[#0F4C75] dark:hover:text-[#BBE1FA] transition"
-          >
-            Bản đồ
-          </Link>
-        </div>
+
+        <Link href="/" className="flex items-center gap-2 text-[#0F4C75] dark:text-[#BBE1FA] font-bold text-xl hover:opacity-80 transition z-10">
+          <FontAwesomeIcon icon={faMapLocationDot} className="w-6 h-6" />
+          <span className="hidden sm:inline">Vietmap Travel</span>
+        </Link>
+        
+        <Link 
+          href="/map" 
+          className={`text-sm font-bold tracking-wide transition ${pathname === '/map' ? 'text-[#0F4C75] dark:text-[#BBE1FA]' : 'text-slate-500 dark:text-slate-400 hover:text-[#0F4C75] dark:hover:text-[#BBE1FA]'}`}
+        >
+          BẢN ĐỒ
+        </Link>
       </div>
     </nav>
   );

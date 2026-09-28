@@ -1,3 +1,12 @@
+export type AdminOption = {
+  code: string;
+  name: string;
+  name_with_type: string;
+  slug: string;
+  type: string;
+  parent_code?: string;
+};
+
 export type Boundary = {
   type: number;
   id: number;

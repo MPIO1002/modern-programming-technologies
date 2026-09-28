@@ -21,7 +21,6 @@ import {
   faTrash,
   faCheck,
 } from "@fortawesome/free-solid-svg-icons";
-import { HCM_LOCATIONS } from "@/constants/locations";
 import { VEHICLE_OPTIONS } from "@/types/vietmap";
 import type { Location, Vehicle, RouteInfo } from "@/types/vietmap";
 
@@ -71,7 +70,7 @@ interface DropdownProps {
   total: number;
 }
 
-function LocationDropdown({ value, onChange, placeholder, usedIds, index, total }: DropdownProps) {
+function LocationDropdown({ value, onChange, placeholder, usedIds, index, total, options }: DropdownProps & { options: Location[] }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -152,53 +151,57 @@ function LocationDropdown({ value, onChange, placeholder, usedIds, index, total 
             </button>
           )}
 
-          {HCM_LOCATIONS.map((loc) => {
-            const isSelected = value?.id === loc.id;
-            const isUsed = usedIds.includes(loc.id);
-            return (
-              <button
-                key={loc.id}
-                type="button"
-                disabled={isUsed && !isSelected}
-                onClick={() => { onChange(loc); setOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors"
-                style={{
-                  background: isSelected ? `${C.light}` : "transparent",
-                  color: isUsed && !isSelected ? "#9ca3af" : C.darkest,
-                  cursor: isUsed && !isSelected ? "not-allowed" : "pointer",
-                  opacity: isUsed && !isSelected ? 0.5 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected && !isUsed)
-                    e.currentTarget.style.background = `${C.light}50`;
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.background = "transparent";
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faLocationDot}
-                  className="w-3 h-3 flex-shrink-0"
-                  style={{ color: isSelected ? C.dark : C.mid }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className={`truncate ${isSelected ? "font-semibold" : "font-medium"}`}>
-                    {loc.name}
-                  </p>
-                  <p className="text-xs truncate" style={{ color: `${C.mid}99` }}>
-                    {loc.address}
-                  </p>
-                </div>
-                {isSelected && (
+          {options.length === 0 ? (
+            <div className="p-3 text-center text-xs text-slate-400">Đang tải địa điểm...</div>
+          ) : (
+            options.map((loc) => {
+              const isSelected = value?.id === loc.id;
+              const isUsed = usedIds.includes(loc.id);
+              return (
+                <button
+                  key={loc.id}
+                  type="button"
+                  disabled={isUsed && !isSelected}
+                  onClick={() => { onChange(loc); setOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors"
+                  style={{
+                    background: isSelected ? `${C.light}` : "transparent",
+                    color: isUsed && !isSelected ? "#9ca3af" : C.darkest,
+                    cursor: isUsed && !isSelected ? "not-allowed" : "pointer",
+                    opacity: isUsed && !isSelected ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected && !isUsed)
+                      e.currentTarget.style.background = `${C.light}50`;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = "transparent";
+                  }}
+                >
                   <FontAwesomeIcon
-                    icon={faCheck}
+                    icon={faLocationDot}
                     className="w-3 h-3 flex-shrink-0"
-                    style={{ color: C.dark }}
+                    style={{ color: isSelected ? C.dark : C.mid }}
                   />
-                )}
-              </button>
-            );
-          })}
+                  <div className="flex-1 min-w-0">
+                    <p className={`truncate ${isSelected ? "font-semibold" : "font-medium"}`}>
+                      {loc.name}
+                    </p>
+                    <p className="text-xs truncate" style={{ color: `${C.mid}99` }}>
+                      {loc.address}
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <FontAwesomeIcon
+                      icon={faCheck}
+                      className="w-3 h-3 flex-shrink-0"
+                      style={{ color: C.dark }}
+                    />
+                  )}
+                </button>
+              );
+            })
+          )}
         </div>
       )}
     </div>
@@ -242,6 +245,23 @@ export default function RouteControlPanel({
   const [collapsed, setCollapsed] = useState(false);
   // Track overflow for animation container: hidden during transition, visible when fully expanded
   const [bodyOverflow, setBodyOverflow] = useState<"hidden" | "visible">("visible");
+  const [places, setPlaces] = useState<Location[]>([]);
+
+  useEffect(() => {
+    fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places")
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.map((p: any) => ({
+          id: p.id.toString(),
+          name: p.name,
+          address: p.ward || p.address || "",
+          lat: Number(p.lat),
+          lng: Number(p.lng),
+        }));
+        setPlaces(mapped);
+      })
+      .catch(console.error);
+  }, []);
 
   // ── Drag & drop state ─────────────────────────────────────────────────
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -413,7 +433,7 @@ export default function RouteControlPanel({
                       onDragOver={(e) => handleDragOver(e, i)}
                       onDrop={() => handleDrop(i)}
                       onDragEnd={handleDragEnd}
-                      className="flex items-center gap-2 rounded-xl p-1.5 transition-all"
+                      className="flex items-center gap-2 rounded-xl p-1.5 transition-all w-full min-w-0"
                       style={{
                         background: isDragOver
                           ? `${C.light}80`
@@ -457,6 +477,7 @@ export default function RouteControlPanel({
                         )}
                         index={i}
                         total={waypoints.length}
+                        options={places}
                       />
 
                       {/* Remove button — only when > 2 waypoints */}

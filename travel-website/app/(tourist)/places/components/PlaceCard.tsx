@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type Place = {
   id: string | number;
@@ -16,8 +19,35 @@ type PlaceCardProps = {
 };
 
 export default function PlaceCard({ place }: PlaceCardProps) {
+  const [isAdded, setIsAdded] = useState(false);
+
+  useEffect(() => {
+    const checkAdded = () => {
+      const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
+      setIsAdded(savedList.includes(Number(place.id)));
+    };
+    checkAdded();
+    window.addEventListener("itinerary_updated", checkAdded);
+    return () => window.removeEventListener("itinerary_updated", checkAdded);
+  }, [place.id]);
+
+  const handleToggleItinerary = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
+    const placeId = Number(place.id);
+    let newList;
+    if (savedList.includes(placeId)) {
+      newList = savedList.filter(id => id !== placeId);
+    } else {
+      newList = [...savedList, placeId];
+    }
+    localStorage.setItem("my_list", JSON.stringify(newList));
+    window.dispatchEvent(new Event("itinerary_updated"));
+  };
+
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white dark:bg-[#0F4C75]/40 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full">
+    <article className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white dark:bg-[#0F4C75]/40 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full relative">
+      
       {/* IMAGE */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-[#1B262C]">
         {place.thumbnail ? (
@@ -54,18 +84,30 @@ export default function PlaceCard({ place }: PlaceCardProps) {
         </p>
 
         {place.openTime && (
-          <p className="mt-3 text-xs font-medium text-slate-400 dark:text-[#3282B8] transition-colors">
+          <p className="mt-3 mb-4 text-xs font-medium text-slate-400 dark:text-[#3282B8] transition-colors">
             Thời gian: {place.openTime}
           </p>
         )}
 
-        <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100 dark:border-[#3282B8]/20 transition-colors">
+        {/* ACTION BUTTONS (STACKED) */}
+        <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-[#3282B8]/20 transition-colors">
           <Link
             href={`/places/${place.slug || place.id}`}
-            className="text-xs font-bold text-indigo-600 dark:text-[#BBE1FA] bg-indigo-50 dark:bg-[#0F4C75] hover:bg-indigo-100 dark:hover:bg-[#3282B8] px-4 py-2 rounded-lg transition-colors w-full text-center"
+            className="w-full text-xs font-bold text-indigo-600 dark:text-[#BBE1FA] bg-indigo-50 dark:bg-[#0F4C75] hover:bg-indigo-100 dark:hover:bg-[#3282B8] px-3 py-2.5 rounded-xl transition-colors text-center"
           >
-            Xem chi tiết
+            Chi tiết
           </Link>
+          
+          <button
+            onClick={handleToggleItinerary}
+            className={`w-full text-xs font-bold px-3 py-2.5 rounded-xl transition-colors text-center border shadow-sm ${
+              isAdded 
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' 
+                : 'bg-[#0F4C75] text-white border-transparent hover:bg-[#3282B8]'
+            }`}
+          >
+            {isAdded ? "✓ Đã thêm vào lộ trình" : "+ Thêm vào lộ trình"}
+          </button>
         </div>
       </div>
     </article>

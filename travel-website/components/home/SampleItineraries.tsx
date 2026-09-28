@@ -50,8 +50,8 @@ export default async function SampleItineraries() {
               </div>
 
               <div className="flex gap-4 text-xs text-[#BBE1FA]/90 mt-3 font-medium">
-                <span>⏱ Thời gian: {itinerary.duration}</span>
-                <span>📍 Quãng đường: {itinerary.distance}</span>
+                <span>Thời gian: {itinerary.duration}</span>
+                <span>Quãng đường: {itinerary.distance}</span>
               </div>
 
               <p className="text-slate-300 text-sm mt-3">

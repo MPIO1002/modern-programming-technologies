@@ -298,7 +298,7 @@ export default function PlaceSearch() {
                             thumbnail: ""
                           };
 
-                          const postRes = await fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places", {
+                          const postRes = await fetch("/api/places", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(newPlace)

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Itinerary } from '@/types/place';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_MOCKAPI_URL;
+const API_BASE_URL = process.env.MOCKAPI_URL;
 
 async function getSampleItineraries(): Promise<Itinerary[]> {
   if (!API_BASE_URL) return [];

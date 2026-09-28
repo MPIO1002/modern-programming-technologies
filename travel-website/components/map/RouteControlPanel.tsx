@@ -248,7 +248,7 @@ export default function RouteControlPanel({
   const [places, setPlaces] = useState<Location[]>([]);
 
   useEffect(() => {
-    fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places")
+    fetch("/api/places")
       .then(res => res.json())
       .then(data => {
         const mapped = data.map((p: any) => ({

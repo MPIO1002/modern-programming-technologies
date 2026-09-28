@@ -34,7 +34,7 @@ export default function MapPage() {
       try {
         const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
         if (savedList.length > 0) {
-          const res = await fetch("https://6ab0c6fc9751d2b03e6c6e16.mockapi.io/TravelWebsite/places");
+          const res = await fetch("/api/places");
           if (res.ok) {
             const data = await res.json();
             const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));

@@ -6,8 +6,7 @@ import PlaceSearch from "./components/PlaceSearch";
 import PlaceExplorer from "./components/PlaceExplorer";
 import type { Place } from "./components/types";
 
-const API_URL =
-  "https://6ab765359b03155d080883c1.mockapi.io/places";
+const API_URL = "/api/places-list";
 
 export default function PlacesPage() {
   const [places, setPlaces] = useState<Place[]>([]);

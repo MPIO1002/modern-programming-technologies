@@ -20,7 +20,7 @@ type Place = {
   experience: string;
 };
 
-const MOCK_API_URL = process.env.NEXT_PUBLIC_PLACES_API_URL;
+const MOCK_API_URL = process.env.PLACES_API_URL as string;
 
 // HÀM FETCH API
 async function getPlaceData(slug: string): Promise<Place | null> {

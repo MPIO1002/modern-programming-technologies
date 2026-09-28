@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { Place } from '@/types/place';
 import PlaceCard from '@/app/(tourist)/places/components/PlaceCard';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_MOCKAPI_URL;
+const API_BASE_URL = process.env.MOCKAPI_URL;
 
 async function getFeaturedPlaces(): Promise<Place[]> {
   if (!API_BASE_URL) {
-    console.error('Chưa cấu hình biến môi trường NEXT_PUBLIC_MOCKAPI_URL');
+    console.error('Chưa cấu hình biến môi trường MOCKAPI_URL');
     return [];
   }
 

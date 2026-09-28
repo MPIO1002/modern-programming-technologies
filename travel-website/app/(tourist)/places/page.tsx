@@ -44,12 +44,14 @@ export default function PlacesPage() {
     <main
       className="
         min-h-screen
-        bg-[#f8fafc]
+        bg-[#f8fafc] dark:bg-[#1B262C]
         pb-[100px]
         pt-[72px]
-        text-slate-900
+        text-slate-900 dark:text-slate-100
         font-sans
+        transition-colors duration-300
         [background:radial-gradient(circle_at_50%_-10%,rgba(99,102,241,0.12),transparent_35%),#f8fafc]
+        dark:[background:radial-gradient(circle_at_50%_-10%,rgba(50,130,184,0.15),transparent_35%),#1B262C]
         max-[600px]:pb-[70px]
         max-[600px]:pt-12
       "

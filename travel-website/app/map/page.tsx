@@ -72,8 +72,8 @@ export default function MapPage() {
         <MapWrapper waypoints={waypoints} routeInfo={routeInfo} />
       </div>
 
-      <Link href="/" className="absolute top-4 left-4 z-[1000] bg-white px-4 py-2 rounded-lg shadow-md font-semibold text-[#0F4C75] hover:bg-[#BBE1FA] transition-colors border border-[#0F4C75]/20 text-sm">
-        &larr; Trang chủ
+      <Link href="/" className="absolute top-4 right-4 z-[1000] bg-white dark:bg-[#1B262C] px-4 py-2 rounded-lg shadow-md font-semibold text-[#0F4C75] dark:text-[#BBE1FA] hover:bg-[#BBE1FA] dark:hover:bg-[#3282B8] transition-colors border border-[#0F4C75]/20 dark:border-[#3282B8]/40 text-sm">
+        Trang chủ &rarr;
       </Link>
 
       {/* Floating control panel */}

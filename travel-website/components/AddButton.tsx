@@ -38,8 +38,8 @@ export default function AddToItineraryButton({ placeId }: Props) {
       onClick={handleClick}
       className={`w-full py-3 font-medium rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 ${
         isAdded 
-          ? 'bg-emerald-600 hover:bg-emerald-700 text-white' // Đã thêm: Màu xanh lá
-          : 'bg-[#4F46E5] hover:bg-[#4338CA] text-white'    // Chưa thêm: Màu tím chủ đạo
+          ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+          : 'bg-[#0F4C75] hover:bg-[#3282B8] text-white'
       }`}
     >
       <span>{isAdded ? '✓ Đã thêm vào lịch trình' : '+ Thêm vào lịch trình'}</span>

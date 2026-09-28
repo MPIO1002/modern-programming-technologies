@@ -23,8 +23,9 @@ export default function RootLayout({ children }: Readonly<{
       <body className={`${montserrat.className} min-h-screen flex flex-col`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
           disableTransitionOnChange>
             {children}
         </ThemeProvider>

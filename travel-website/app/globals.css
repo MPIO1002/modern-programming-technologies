@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ── Brand color palette ───────────────────────────────────────────────── */
 :root {

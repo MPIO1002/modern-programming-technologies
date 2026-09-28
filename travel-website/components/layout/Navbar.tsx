@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMapLocationDot } from "@fortawesome/free-solid-svg-icons";
 import { usePathname } from "next/navigation";
@@ -29,7 +28,6 @@ export default function Navbar() {
           >
             Bản đồ
           </Link>
-          <ThemeToggle />
         </div>
       </div>
     </nav>

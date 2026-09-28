@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import InfoCard from '@/components/InfoCard';
 import AddButton from '@/components/AddButton';
 
@@ -84,9 +85,19 @@ export default async function PlaceDetail({ params }: { params: Promise<{ slug: 
       
       {/* CỘT TRÁI: NỘI DUNG GIỚI THIỆU (Để nội dung dài thoải mái) */}
       <div className="lg:col-span-2 space-y-6">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-        {place.name}
-        </h1>
+        <div className="flex flex-col gap-4">
+          <Link href="/places" className="text-indigo-600 font-semibold hover:text-indigo-800 transition inline-flex items-center gap-1 text-sm">
+            &larr; Quay lại danh sách
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900">
+              {place.name}
+            </h1>
+            <Link href="/map" className="inline-flex justify-center whitespace-nowrap px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:bg-indigo-700 transition">
+              📍 Tìm đường đi
+            </Link>
+          </div>
+        </div>
 
         {/* <div className="h-[3px] w-full bg-gradient-to-r from-indigo-600 via-indigo-400 to-transparent rounded-full" /> */}
         <div className="h-[2px] w-full bg-gradient-to-r from-indigo-500 via-indigo-300 to-transparent" />

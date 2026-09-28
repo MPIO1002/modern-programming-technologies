@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import PlaceSearch from "./components/PlaceSearch";
 import PlaceExplorer from "./components/PlaceExplorer";
 import type { Place } from "./components/types";
@@ -56,6 +57,9 @@ export default function PlacesPage() {
       {/* HERO + VIETMAP SEARCH */}
       <section className="w-full px-6 max-[600px]:px-4">
         <div className="mx-auto w-full max-w-[1080px]">
+          <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition mb-6">
+            &larr; Quay lại trang chủ
+          </Link>
           <span
             className="
               mb-[18px] block

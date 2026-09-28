@@ -72,7 +72,7 @@ export default async function SampleItineraries() {
 
             <div className="mt-6 pt-4 border-t border-[#3282B8]/30">
               <Link
-                href={`/trip-planner?itineraryId=${itinerary.id}`}
+                href={`/map`}
                 className="w-full inline-block text-center py-3 bg-[#3282B8] hover:bg-[#0F4C75] text-white font-semibold rounded-xl text-sm transition shadow-md"
               >
                 Mở Trên Bản Đồ Vietmap

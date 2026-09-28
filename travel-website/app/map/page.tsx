@@ -3,6 +3,7 @@
 import MapWrapper from "@/components/map/MapWrapper";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
+import Link from "next/link";
 
 export default function MapPage() {
   const {
@@ -27,6 +28,10 @@ export default function MapPage() {
       <div className="absolute inset-0">
         <MapWrapper waypoints={waypoints} routeInfo={routeInfo} />
       </div>
+
+      <Link href="/" className="absolute top-4 left-4 z-[1000] bg-white px-4 py-2 rounded-lg shadow-md font-semibold text-[#0F4C75] hover:bg-[#BBE1FA] transition-colors border border-[#0F4C75]/20 text-sm">
+        &larr; Trang chủ
+      </Link>
 
       {/* Floating control panel */}
       <RouteControlPanel

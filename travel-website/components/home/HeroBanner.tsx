@@ -25,7 +25,7 @@ export default function HeroBanner() {
 
         <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-[#BBE1FA] tracking-tight leading-tight transition-colors">
           Hành Trình Du Lịch Thông Minh <br />
-          <span className="text-indigo-600 dark:text-white transition-colors">Tối Ưu Tuyến Đường Đi</span>
+          <span className="text-[#0F4C75] dark:text-white transition-colors">Tối Ưu Tuyến Đường Đi</span>
         </h1>
 
         <p className="text-slate-600 dark:text-[#BBE1FA]/80 text-base sm:text-lg max-w-4xl mx-auto transition-colors">

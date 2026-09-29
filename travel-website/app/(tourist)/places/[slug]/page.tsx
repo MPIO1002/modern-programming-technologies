@@ -20,7 +20,7 @@ type Place = {
   experience: string;
 };
 
-const MOCK_API_URL = process.env.PLACES_API_URL as string;
+const MOCK_API_URL = process.env.MOCKAPI_PLACES_URL as string;
 
 // HÀM FETCH API
 async function getPlaceData(slug: string): Promise<Place | null> {
@@ -128,7 +128,10 @@ export default async function PlaceDetail({ params }: { params: Promise<{ slug: 
               <InfoCard title='Tọa độ' value={`${place.lat}, ${place.lng}`} />
               <InfoCard title='Loại hình' value={place.category} />
               <InfoCard title='Giờ mở cửa' value={place.openTime} />
-              <InfoCard title='Chi phí' value={place.price} />
+              <InfoCard
+                title="Chi phí"
+                value={place.price === "free" ? "Miễn phí" : place.price}
+              />
             </div>
           </div>
         </div>

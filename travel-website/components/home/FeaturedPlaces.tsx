@@ -2,17 +2,17 @@ import Link from 'next/link';
 import { Place } from '@/types/place';
 import PlaceCard from '@/app/(tourist)/places/components/PlaceCard';
 
-const API_BASE_URL = process.env.MOCKAPI_URL;
+const API_BASE_URL = process.env.MOCKAPI_PLACES_URL;
 
 async function getFeaturedPlaces(): Promise<Place[]> {
   if (!API_BASE_URL) {
-    console.error('Chưa cấu hình biến môi trường MOCKAPI_URL');
+    console.error('Chưa cấu hình biến môi trường MOCKAPI_PLACES_URL');
     return [];
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/places`, {
-      cache: 'no-store', // Luôn lấy dữ liệu mới nhất từ MockAPI
+    const res = await fetch(API_BASE_URL, {
+      cache: 'no-store',
     });
 
     if (!res.ok) {
@@ -38,7 +38,7 @@ export default async function FeaturedPlaces() {
               Điểm Đến Nổi Bật
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 transition-colors">
-              Các tọa độ du lịch được quan tâm nhiều nhất tại TP. Hồ Chí Minh
+              Các tọa độ du lịch được quan tâm nhiều nhất tại ba miền.
             </p>
           </div>
           <Link
@@ -55,7 +55,7 @@ export default async function FeaturedPlaces() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {places.map((place) => (
+            {places.slice(0, 4).map((place) => (
               <PlaceCard 
                 key={place.id}
                 place={{
@@ -63,9 +63,9 @@ export default async function FeaturedPlaces() {
                   slug: place.slug || place.id.toString(),
                   name: place.name,
                   description: place.description,
-                  category: place.ward || 'Nổi bật',
-                  price: 'free',
-                  thumbnail: place.image,
+                  category: place.category,
+                  price: place.price,
+                  thumbnail: place.thumbnail,
                 }} 
               />
             ))}

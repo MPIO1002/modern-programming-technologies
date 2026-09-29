@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const url = process.env.MOCKAPI_URL as string;
+  const url = process.env.MOCKAPI_PLACES_URL as string;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

@@ -291,11 +291,11 @@ export default function PlaceSearch() {
                             address: formatCurrentAddress(place),
                             lat: details.lat,
                             lng: details.lng,
-                            ward: place.categories?.[0] || "Địa điểm Vietmap",
-                            description: "Thêm từ thanh tìm kiếm Vietmap",
-                            category: "1002-6",
+                            ward: "Địa điểm Vietmap",
+                            description: "Địa điểm khám phá từ Vietmap",
+                            category: "Khám phá",
                             price: "free",
-                            thumbnail: ""
+                            thumbnail: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800&auto=format&fit=crop&q=60"
                           };
 
                           const postRes = await fetch("/api/places", {

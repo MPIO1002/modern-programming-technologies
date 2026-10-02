@@ -81,8 +81,17 @@ export function useVietmapRoute(): UseVietmapRouteReturn {
       return;
     }
 
-    const ids = filled.map((w) => w.id);
-    if (new Set(ids).size !== ids.length) {
+    // Kiểm tra xem có 2 điểm nào có cùng tọa độ địa lý không (trùng địa điểm thực sự)
+    const hasDuplicateCoordinates = filled.some((w1, idx1) =>
+      filled.some(
+        (w2, idx2) =>
+          idx1 < idx2 &&
+          Math.abs(w1.lat - w2.lat) < 0.0001 &&
+          Math.abs(w1.lng - w2.lng) < 0.0001
+      )
+    );
+
+    if (hasDuplicateCoordinates) {
       setError("Không được chọn trùng địa điểm.");
       return;
     }

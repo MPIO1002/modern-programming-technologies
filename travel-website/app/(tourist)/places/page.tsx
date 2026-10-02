@@ -6,7 +6,7 @@ import PlaceSearch from "./components/PlaceSearch";
 import PlaceExplorer from "./components/PlaceExplorer";
 import type { Place } from "./components/types";
 
-const API_URL = "/api/places-list";
+const API_URL = "/api/places";
 
 export default function PlacesPage() {
   const [places, setPlaces] = useState<Place[]>([]);

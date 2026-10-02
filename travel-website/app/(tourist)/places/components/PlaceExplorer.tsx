@@ -418,8 +418,8 @@ export default function PlaceExplorer({
             <PlaceCardSkeleton key={index} />
           ))
         ) : filteredPlaces.length > 0 ? (
-          filteredPlaces.map((place) => (
-            <PlaceCard key={place.id} place={place} />
+          filteredPlaces.map((place, index) => (
+            <PlaceCard key={`${place.id}-${place.slug || index}`} place={place} />
           ))
         ) : (
           <div className="col-span-full flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white">

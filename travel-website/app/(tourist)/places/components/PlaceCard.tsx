@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import AddButton from "@/components/AddButton";
 
 type Place = {
   id: string | number;
@@ -19,32 +17,6 @@ type PlaceCardProps = {
 };
 
 export default function PlaceCard({ place }: PlaceCardProps) {
-  const [isAdded, setIsAdded] = useState(false);
-
-  useEffect(() => {
-    const checkAdded = () => {
-      const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
-      setIsAdded(savedList.includes(Number(place.id)));
-    };
-    checkAdded();
-    window.addEventListener("itinerary_updated", checkAdded);
-    return () => window.removeEventListener("itinerary_updated", checkAdded);
-  }, [place.id]);
-
-  const handleToggleItinerary = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
-    const placeId = Number(place.id);
-    let newList;
-    if (savedList.includes(placeId)) {
-      newList = savedList.filter(id => id !== placeId);
-    } else {
-      newList = [...savedList, placeId];
-    }
-    localStorage.setItem("my_list", JSON.stringify(newList));
-    window.dispatchEvent(new Event("itinerary_updated"));
-  };
-
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white dark:bg-[#0F4C75]/40 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full relative">
       
@@ -93,21 +65,12 @@ export default function PlaceCard({ place }: PlaceCardProps) {
         <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-[#3282B8]/20 transition-colors">
           <Link
             href={`/places/${place.slug || place.id}`}
-            className="w-full text-xs font-bold text-indigo-600 dark:text-[#BBE1FA] bg-indigo-50 dark:bg-[#0F4C75] hover:bg-indigo-100 dark:hover:bg-[#3282B8] px-3 py-2.5 rounded-xl transition-colors text-center"
+            className="w-full text-xs font-bold px-3 py-2.5 rounded-xl transition-colors text-center border border-[#0F4C75] text-[#0F4C75] bg-white hover:bg-[#0F4C75] hover:text-white dark:border-[#3282B8] dark:text-[#BBE1FA] dark:bg-transparent dark:hover:bg-[#3282B8] dark:hover:text-white shadow-sm inline-block"
           >
             Chi tiết
           </Link>
           
-          <button
-            onClick={handleToggleItinerary}
-            className={`w-full text-xs font-bold px-3 py-2.5 rounded-xl transition-colors text-center border shadow-sm ${
-              isAdded 
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' 
-                : 'bg-[#0F4C75] text-white border-transparent hover:bg-[#3282B8]'
-            }`}
-          >
-            {isAdded ? "✓ Đã thêm vào lộ trình" : "+ Thêm vào lộ trình"}
-          </button>
+          <AddButton placeId={place.id} variant="card" />
         </div>
       </div>
     </article>

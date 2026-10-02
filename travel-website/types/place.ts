@@ -9,6 +9,9 @@ export interface Place {
     description: string;
     lat: number;
     lng: number;
+    thumbnail: string;
+    category: string;
+    price: string;
 }
 export interface Itinerary {
     id: string;

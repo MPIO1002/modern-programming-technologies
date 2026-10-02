@@ -31,7 +31,7 @@ export default function SidebarItinerary() {
 
   useEffect(() => {
     loadSavedPlaces();
-    
+
     const handleStorageChange = () => {
       loadSavedPlaces();
       setIsSidebarOpen(true);
@@ -60,18 +60,18 @@ export default function SidebarItinerary() {
   if (pathname === '/map') return null;
 
   return (
-    <div 
+    <div
       className={`fixed top-16 bottom-0 right-0 z-[1000] bg-white dark:bg-[#1B262C] border-l border-slate-200 dark:border-[#3282B8]/30 flex flex-col transition-all duration-300 shadow-xl ${isSidebarOpen ? 'w-80' : 'w-0'}`}
     >
       {/* Toggle Button */}
-      <button 
+      <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="absolute -left-10 top-6 bg-white dark:bg-[#0F4C75] border border-r-0 border-slate-200 dark:border-[#3282B8]/30 rounded-l-xl p-2.5 shadow-md text-slate-700 dark:text-[#BBE1FA] hover:bg-slate-50 transition-colors"
         title={isSidebarOpen ? "Thu gọn danh sách" : "Mở danh sách địa điểm"}
       >
         <FontAwesomeIcon icon={isSidebarOpen ? faChevronRight : faChevronLeft} className="w-4 h-4" />
         {!isSidebarOpen && savedPlaces.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
             {savedPlaces.length}
           </span>
         )}
@@ -92,8 +92,8 @@ export default function SidebarItinerary() {
               Chưa có địa điểm nào được chọn. Hãy thêm địa điểm vào lộ trình!
             </div>
           ) : (
-            savedPlaces.map(place => (
-              <div key={place.id} className="bg-white dark:bg-[#0F4C75]/20 border border-slate-200 dark:border-[#3282B8]/30 rounded-lg p-3 shadow-sm flex gap-3 relative group">
+            savedPlaces.map((place, index) => (
+              <div key={`${place.id}-${index}`} className="bg-white dark:bg-[#0F4C75]/20 border border-slate-200 dark:border-[#3282B8]/30 rounded-lg p-3 shadow-sm flex gap-3 relative group">
                 {(place.image || place.thumbnail) ? (
                   <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-100">
                     <img src={place.image || place.thumbnail} alt={place.name} className="w-full h-full object-cover" />
@@ -107,7 +107,7 @@ export default function SidebarItinerary() {
                   <h4 className="font-semibold text-sm text-slate-800 dark:text-white truncate">{place.name}</h4>
                   <p className="text-xs text-slate-500 truncate mt-1">{place.ward}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => handleRemoveSavedPlace(place.id)}
                   className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Xóa khỏi danh sách"

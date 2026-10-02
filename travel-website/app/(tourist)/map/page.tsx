@@ -40,8 +40,8 @@ export default function MapPage() {
             const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
             
             if (routePlaces.length > 0) {
-              const newWaypoints: (Location | null)[] = routePlaces.map((p: any) => ({
-                id: p.id.toString(),
+              const newWaypoints: (Location | null)[] = routePlaces.map((p: any, idx: number) => ({
+                id: `${p.id}-${idx}`,
                 name: p.name,
                 address: p.ward || p.address || "",
                 lat: Number(p.lat),

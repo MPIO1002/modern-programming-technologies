@@ -94,9 +94,6 @@ export default async function PlaceDetail({ params }: { params: Promise<{ slug: 
                 <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors">
                   {place.name}
                 </h1>
-                <Link href="/map" className="inline-flex justify-center whitespace-nowrap px-6 py-3 bg-[#0F4C75] text-white font-bold rounded-xl shadow-md hover:bg-[#3282B8] transition">
-                  Tìm đường đi
-                </Link>
               </div>
             </div>
 

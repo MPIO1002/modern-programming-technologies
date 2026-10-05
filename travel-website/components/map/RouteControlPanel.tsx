@@ -20,9 +20,12 @@ import {
   faTrash,
   faMagnifyingGlass,
   faPen,
+  faBookmark,
+  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { VEHICLE_OPTIONS } from "@/types/vietmap";
 import type { Location, Vehicle, RouteInfo } from "@/types/vietmap";
+import { saveTripItineraryAction } from "@/actions/itinerary";
 
 // ── Brand palette ──────────────────────────────────────────────────────
 const C = {
@@ -396,6 +399,34 @@ export default function RouteControlPanel({
 }: RouteControlPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [places, setPlaces] = useState<Location[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  const handleSaveItinerary = async () => {
+    const validWaypoints = waypoints.filter(Boolean) as Location[];
+    if (validWaypoints.length < 2) return;
+
+    try {
+      setSaving(true);
+      const tripName = `Lộ trình ${validWaypoints[0].name} - ${validWaypoints[validWaypoints.length - 1].name}`;
+      const res = await saveTripItineraryAction({
+        tripName,
+        waypoints: validWaypoints.map((w) => ({ name: w.name, lat: w.lat, lng: w.lng })),
+        vehicle,
+        distanceKm: routeInfo?.distanceKm,
+        durationMin: routeInfo?.durationMin,
+      });
+
+      if (res.success) {
+        setSaveSuccessMsg(res.message);
+        setTimeout(() => setSaveSuccessMsg(null), 4000);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi Server Action:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/places")
@@ -736,6 +767,14 @@ export default function RouteControlPanel({
               </div>
             )}
 
+            {/* ── Success Banner for Server Action ────────────────── */}
+            {saveSuccessMsg && (
+              <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium animate-in fade-in duration-200">
+                <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="flex-1">{saveSuccessMsg}</span>
+              </div>
+            )}
+
             {/* ── Action Buttons ──────────────────────────────── */}
             <div className="flex gap-2 pt-1">
               <button
@@ -773,6 +812,28 @@ export default function RouteControlPanel({
                   </>
                 )}
               </button>
+
+              {canCalculate && (
+                <button
+                  id="save-itinerary-btn"
+                  type="button"
+                  onClick={handleSaveItinerary}
+                  disabled={saving}
+                  className="px-3 py-2.5 rounded-xl transition-all font-semibold text-xs border flex items-center gap-1.5 shrink-0"
+                  style={{
+                    background: "#ecfdf5",
+                    color: "#047857",
+                    borderColor: "#a7f3d0",
+                  }}
+                  title="Lưu hành trình (Gọi Server Action)"
+                >
+                  <FontAwesomeIcon
+                    icon={saving ? faSpinner : faBookmark}
+                    className={`w-3 h-3 ${saving ? "animate-spin" : ""}`}
+                  />
+                  <span>{saving ? "Đang lưu..." : "Lưu"}</span>
+                </button>
+              )}
 
               {(routeInfo || error) && (
                 <button

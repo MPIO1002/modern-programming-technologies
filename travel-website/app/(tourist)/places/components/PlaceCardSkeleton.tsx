@@ -1,6 +1,7 @@
 export default function PlaceCardSkeleton() {
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white dark:bg-[#0F4C75]/40 shadow-sm flex flex-col h-full relative">
+    <article className="overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white 
+    dark:bg-[#0F4C75]/40 shadow-sm flex flex-col h-full relative">
       {/* IMAGE */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-200 dark:bg-[#1B262C] animate-pulse">
         {/* CATEGORY */}

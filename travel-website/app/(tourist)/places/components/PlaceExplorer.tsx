@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import PlaceCard from "./PlaceCard";
-import PlaceCardSkeleton from "./PlaceCardSkeleton";
 import type { Place } from "./types";
 
 type Province = {
@@ -15,13 +14,9 @@ type Province = {
 
 type PlaceExplorerProps = {
   places: Place[];
-  loading: boolean;
 };
 
-export default function PlaceExplorer({
-  places,
-  loading,
-}: PlaceExplorerProps) {
+export default function PlaceExplorer({ places }: PlaceExplorerProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Tất cả");
   const [price, setPrice] = useState("Tất cả");
@@ -379,45 +374,37 @@ export default function PlaceExplorer({
 
       {/* RESULT INFO */}
       <div className="mt-5 flex items-center justify-between gap-3">
-        {!loading && (
-          <>
-            <p className="text-sm text-slate-500">
-              Tìm thấy{" "}
+        <p className="text-sm text-slate-500">
+          Tìm thấy{" "}
+          <span className="font-semibold text-slate-800">
+            {filteredPlaces.length}
+          </span>{" "}
+          địa điểm
+
+          {selectedProvince && (
+            <>
+              {" "}tại{" "}
               <span className="font-semibold text-slate-800">
-                {filteredPlaces.length}
-              </span>{" "}
-              địa điểm
+                {selectedProvince.name}
+              </span>
+            </>
+          )}
+        </p>
 
-              {selectedProvince && (
-                <>
-                  {" "}tại{" "}
-                  <span className="font-semibold text-slate-800">
-                    {selectedProvince.name}
-                  </span>
-                </>
-              )}
-            </p>
-
-            {hasActiveFilter && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="shrink-0 text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
-              >
-                Xóa bộ lọc
-              </button>
-            )}
-          </>
+        {hasActiveFilter && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="shrink-0 text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
+          >
+            Xóa bộ lọc
+          </button>
         )}
       </div>
 
-      {/* CARDS / SKELETON */}
+      {/* CARDS */}
       <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {loading ? (
-          Array.from({ length: 6 }).map((_, index) => (
-            <PlaceCardSkeleton key={index} />
-          ))
-        ) : filteredPlaces.length > 0 ? (
+        {filteredPlaces.length > 0 ? (
           filteredPlaces.map((place, index) => (
             <PlaceCard key={`${place.id}-${place.slug || index}`} place={place} />
           ))

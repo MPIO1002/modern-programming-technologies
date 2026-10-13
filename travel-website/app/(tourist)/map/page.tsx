@@ -5,6 +5,7 @@ import MapWrapper from "@/components/map/MapWrapper";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
 import type { Location } from "@/types/vietmap";
+import { getCustomItineraryPlaces } from "@/services/itinerary-storage";
 
 export default function MapPage() {
   const {
@@ -33,28 +34,48 @@ export default function MapPage() {
     async function loadSavedPlaces() {
       try {
         const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
+        const customPlaces = getCustomItineraryPlaces();
+
         if (savedList.length > 0) {
           const res = await fetch("/api/places");
-          if (res.ok) {
-            const data = await res.json();
-            const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
-            
-            if (routePlaces.length > 0) {
-              const newWaypoints: (Location | null)[] = routePlaces.map((p: any, idx: number) => ({
-                id: `${p.id}-${idx}`,
-                name: p.name,
-                address: p.ward || p.address || "",
-                lat: Number(p.lat),
-                lng: Number(p.lng),
-              }));
-              
-              while (newWaypoints.length < 2) {
-                newWaypoints.push(null);
-              }
-              
-              setWaypoints(newWaypoints);
-            }
+          if (!res.ok) {
+            throw new Error(`Không thể tải địa điểm đã lưu (${res.status})`);
           }
+
+          const data = await res.json();
+          const routePlaces = Array.isArray(data)
+            ? data.filter((place: { id: string | number }) =>
+                savedList.includes(Number(place.id))
+              )
+            : [];
+          const savedRoutePlaces: Location[] = routePlaces.map(
+            (
+              place: {
+                id: string | number;
+                name: string;
+                ward?: string;
+                address?: string;
+                lat: number | string;
+                lng: number | string;
+              },
+              index: number
+            ) => ({
+              id: `${place.id}-${index}`,
+              name: place.name,
+              address: place.ward || place.address || "",
+              lat: Number(place.lat),
+              lng: Number(place.lng),
+            })
+          );
+          const places = [...savedRoutePlaces, ...customPlaces];
+          setWaypoints([...places, null, null].slice(0, Math.max(2, places.length)));
+        } else if (customPlaces.length > 0) {
+          setWaypoints(
+            [...customPlaces, null, null].slice(
+              0,
+              Math.max(2, customPlaces.length)
+            )
+          );
         }
       } catch (err) {
         console.error("Lỗi khi tải lộ trình đã lưu:", err);

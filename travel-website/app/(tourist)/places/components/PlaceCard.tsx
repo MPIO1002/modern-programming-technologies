@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import AddButton from "@/components/AddButton";
 
 type Place = {
@@ -9,6 +10,7 @@ type Place = {
   category: string;
   price: "free" | string;
   thumbnail?: string;
+  image?: string;
   openTime?: string;
 };
 
@@ -17,16 +19,21 @@ type PlaceCardProps = {
 };
 
 export default function PlaceCard({ place }: PlaceCardProps) {
+  const imageUrl = place.thumbnail || place.image;
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-[#3282B8]/30 bg-white dark:bg-[#0F4C75]/40 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full relative">
       
       {/* IMAGE */}
       <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-[#1B262C]">
-        {place.thumbnail ? (
-          <img
-            src={place.thumbnail}
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
             alt={place.name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-slate-400">
@@ -35,14 +42,18 @@ export default function PlaceCard({ place }: PlaceCardProps) {
         )}
 
         {/* CATEGORY */}
-        <span className="absolute left-3 top-3 rounded-full bg-white/90 dark:bg-[#1B262C]/90 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:text-[#BBE1FA] shadow-sm backdrop-blur transition-colors">
-          {place.category}
-        </span>
+        {place.category && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-white/90 dark:bg-[#1B262C]/90 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:text-[#BBE1FA] shadow-sm backdrop-blur transition-colors">
+            {place.category}
+          </span>
+        )}
 
         {/* PRICE */}
-        <span className="absolute right-3 top-3 rounded-full bg-white/90 dark:bg-[#1B262C]/90 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:text-amber-300 shadow-sm backdrop-blur transition-colors">
-          {place.price === "free" ? "Miễn phí" : "Có phí"}
-        </span>
+        {place.price && (
+          <span className="absolute right-3 top-3 z-10 rounded-full bg-white/90 dark:bg-[#1B262C]/90 px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:text-amber-300 shadow-sm backdrop-blur transition-colors">
+            {place.price === "free" ? "Miễn phí" : "Có phí"}
+          </span>
+        )}
       </div>
 
       {/* CONTENT */}

@@ -1,92 +1,23 @@
-"use client";
+import type { Metadata } from "next";
+import MapContainer from "@/components/map/MapContainer";
 
-import { useEffect, useState, useRef } from "react";
-import MapWrapper from "@/components/map/MapWrapper";
-import RouteControlPanel from "@/components/map/RouteControlPanel";
-import { useVietmapRoute } from "@/hooks/useVietmapRoute";
-import type { Location } from "@/types/vietmap";
+export const metadata: Metadata = {
+  title: "Bản đồ tương tác & Lộ trình du lịch | Vietmap Route Finder",
+  description:
+    "Tính toán lộ trình tối ưu và khám phá bản đồ du lịch tương tác TP. Hồ Chí Minh với Vietmap API.",
+};
 
+/**
+ * Server Component (Outer Shell):
+ * Đảm nhiệm sinh metadata, render khung vỏ tĩnh phía server,
+ * không nạp mã JavaScript tương tác lớn xuống client ban đầu.
+ * Đẩy toàn bộ logic bản đồ và tương tác người dùng xuống Client Leaf Component (`MapContainer`).
+ */
 export default function MapPage() {
-  const {
-    waypoints,
-    vehicle,
-    routeInfo,
-    loading,
-    error,
-    addWaypoint,
-    removeWaypoint,
-    updateWaypoint,
-    reorderWaypoints,
-    setVehicle,
-    calculateRoute,
-    clearRoute,
-    clearError,
-    setWaypoints,
-  } = useVietmapRoute();
-
-  const initRef = useRef(false);
-
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-
-    async function loadSavedPlaces() {
-      try {
-        const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
-        if (savedList.length > 0) {
-          const res = await fetch("/api/places");
-          if (res.ok) {
-            const data = await res.json();
-            const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
-            
-            if (routePlaces.length > 0) {
-              const newWaypoints: (Location | null)[] = routePlaces.map((p: any, idx: number) => ({
-                id: `${p.id}-${idx}`,
-                name: p.name,
-                address: p.ward || p.address || "",
-                lat: Number(p.lat),
-                lng: Number(p.lng),
-              }));
-              
-              while (newWaypoints.length < 2) {
-                newWaypoints.push(null);
-              }
-              
-              setWaypoints(newWaypoints);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải lộ trình đã lưu:", err);
-      }
-    }
-    
-    loadSavedPlaces();
-  }, [setWaypoints]);
-
   return (
     <main className="flex-grow w-full relative h-[calc(100vh-64px)] flex overflow-hidden">
-      {/* Main map area */}
-      <div className="flex-1 relative h-full">
-        <MapWrapper waypoints={waypoints} routeInfo={routeInfo} />
-        
-        {/* Floating control panel */}
-        <RouteControlPanel
-          waypoints={waypoints}
-          vehicle={vehicle}
-          routeInfo={routeInfo}
-          loading={loading}
-          error={error}
-          onUpdate={updateWaypoint}
-          onAdd={addWaypoint}
-          onRemove={removeWaypoint}
-          onReorder={reorderWaypoints}
-          onVehicleChange={setVehicle}
-          onCalculate={calculateRoute}
-          onClear={clearRoute}
-          onClearError={clearError}
-        />
-      </div>
+      {/* Client Leaf Component: Giữ ranh giới Client ở mức nhỏ nhất */}
+      <MapContainer />
     </main>
   );
 }

@@ -1,24 +1,24 @@
 import Image from 'next/image';
-import QuickSearchBar from './QuickSearchBar';
+import ExplorePlacesButton from './ExplorePlacesButton';
 
 export default function HeroBanner() {
   return (
-    <section className="relative w-full min-h-[580px] flex items-center justify-center text-center px-4 overflow-hidden transition-colors duration-300">
+    <section className="relative flex min-h-[580px] w-full items-center justify-center overflow-hidden bg-slate-50 px-4 text-center transition-colors duration-300 dark:bg-[#1B262C]">
       {/* Lớp nền ảnh */}
-      <div className="absolute inset-0 z-0 bg-slate-50">
+      <div className="absolute inset-0 z-0 bg-slate-50 dark:bg-[#1B262C]">
         <Image
           src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=1920&q=80"
           alt="Du lịch thành phố"
           fill
           priority
           sizes="100vw"
-          className="object-cover opacity-30"
+          className="object-cover opacity-60"
         />
-        {/* Lớp phủ mờ */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-slate-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-slate-50/65 to-slate-50 dark:from-[#1B262C]/10 dark:via-[#1B262C]/70 dark:to-[#1B262C]" />
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-b from-transparent to-slate-50 dark:to-[#1B262C]" />
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto space-y-6">
+      <div className="relative z-10 mx-auto max-w-4xl space-y-6">
         <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase bg-indigo-100 text-indigo-700 dark:bg-[#0F4C75] dark:text-[#BBE1FA] border border-indigo-200 dark:border-[#3282B8]/50 transition-colors">
           Tích hợp Vietmap API
         </span>
@@ -32,8 +32,8 @@ export default function HeroBanner() {
           Khám phá di tích lịch sử, danh lam thắng cảnh và sắp xếp lịch trình di chuyển khoa học nhất.
         </p>
 
-        <div className="pt-3">
-          <QuickSearchBar />
+        <div className="flex justify-center pt-3">
+          <ExplorePlacesButton />
         </div>
       </div>
     </section>

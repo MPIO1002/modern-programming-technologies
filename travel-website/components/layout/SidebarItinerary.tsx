@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faChevronLeft, faMap, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useRouter, usePathname } from "next/navigation";
+import {
+  getCustomItineraryPlaces,
+  removeCustomItineraryPlace,
+} from "@/services/itinerary-storage";
 
 export default function SidebarItinerary() {
   const [savedPlaces, setSavedPlaces] = useState<any[]>([]);
@@ -14,15 +18,29 @@ export default function SidebarItinerary() {
   const loadSavedPlaces = async () => {
     try {
       const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
+      const customPlaces = getCustomItineraryPlaces().map((place) => ({
+        id: place.id,
+        name: place.name,
+        ward: place.address,
+        lat: place.lat,
+        lng: place.lng,
+      }));
+
       if (savedList.length > 0) {
         const res = await fetch("/api/places");
-        if (res.ok) {
-          const data = await res.json();
-          const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
-          setSavedPlaces(routePlaces);
+        if (!res.ok) {
+          throw new Error(`Không thể tải địa điểm đã lưu (${res.status})`);
         }
+
+        const data = await res.json();
+        const routePlaces = Array.isArray(data)
+          ? data.filter((place: { id: string | number }) =>
+              savedList.includes(Number(place.id))
+            )
+          : [];
+        setSavedPlaces([...routePlaces, ...customPlaces]);
       } else {
-        setSavedPlaces([]);
+        setSavedPlaces(customPlaces);
       }
     } catch (err) {
       console.error("Lỗi khi tải lộ trình đã lưu:", err);
@@ -54,6 +72,7 @@ export default function SidebarItinerary() {
     setSavedPlaces(updated);
     const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
     localStorage.setItem("my_list", JSON.stringify(savedList.filter(item => item.toString() !== id.toString())));
+    removeCustomItineraryPlace(id.toString());
     window.dispatchEvent(new Event("itinerary_updated"));
   };
 

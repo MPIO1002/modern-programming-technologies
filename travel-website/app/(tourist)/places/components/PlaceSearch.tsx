@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { Suggestion } from "./types";
+import { saveCustomItineraryPlace } from "@/services/itinerary-storage";
+import type { Location } from "@/types/vietmap";
 
 export default function PlaceSearch() {
   const [query, setQuery] = useState("");
@@ -245,75 +247,65 @@ export default function PlaceSearch() {
             <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
               <div className="max-h-[420px] overflow-y-auto py-1.5">
                 {suggestions.map((place) => (
-                  <button
+                  <div
                     key={place.ref_id}
-                    type="button"
-                    onClick={() => handleSelect(place)}
-                    className="group flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50"
+                    className="group flex w-full items-start gap-3 px-4 py-3.5 transition hover:bg-slate-50"
                   >
-                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-base text-indigo-600">
-                      ⌖
-                    </span>
-
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-semibold leading-5 text-slate-900">
-                        {place.name || place.display}
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(place)}
+                      className="flex min-w-0 flex-1 items-start gap-3 text-left"
+                    >
+                      <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-base text-indigo-600">
+                        ⌖
                       </span>
 
-                      <span className="mt-1 block line-clamp-2 text-[12px] leading-5 text-slate-500">
-                        {formatCurrentAddress(place)}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14px] font-semibold leading-5 text-slate-900">
+                          {place.name || place.display}
+                        </span>
+
+                        <span className="mt-1 block line-clamp-2 text-[12px] leading-5 text-slate-500">
+                          {formatCurrentAddress(place)}
+                        </span>
+
+                        {place.categories &&
+                          place.categories.length > 0 && (
+                            <span className="mt-2 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                              {place.categories[0]}
+                            </span>
+                          )}
                       </span>
-
-                      {place.categories &&
-                        place.categories.length > 0 && (
-                          <span className="mt-2 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                            {place.categories[0]}
-                          </span>
-                        )}
-                    </span>
-
+                    </button>
                     <button
                       type="button"
                       onClick={async (e) => {
-                        e.stopPropagation();
                         try {
                           const res = await fetch(`/api/vietmap/place?ref_id=${place.ref_id}`);
                           if (!res.ok) throw new Error("Lỗi khi lấy tọa độ");
                           const details = await res.json();
                           
-                          if (!details || !details.lat || !details.lng) {
+                          if (
+                            !details ||
+                            !Number.isFinite(Number(details.lat)) ||
+                            !Number.isFinite(Number(details.lng))
+                          ) {
                             alert("Không thể lấy tọa độ của địa điểm này");
                             return;
                           }
 
-                          const newPlace = {
+                          const itineraryPlace: Location = {
+                            id: `vietmap:${place.ref_id}`,
                             name: place.name || place.display,
                             address: formatCurrentAddress(place),
-                            lat: details.lat,
-                            lng: details.lng,
-                            ward: "Địa điểm Vietmap",
-                            description: "Địa điểm khám phá từ Vietmap",
-                            category: "Khám phá",
-                            price: "free",
-                            thumbnail: "https://images.unsplash.com/photo-1528127269322-539801943592?w=800&auto=format&fit=crop&q=60"
+                            lat: Number(details.lat),
+                            lng: Number(details.lng),
                           };
 
-                          const postRes = await fetch("/api/places", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(newPlace)
-                          });
-
-                          if (postRes.ok) {
-                            const created = await postRes.json();
-                            const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
-                            if (!savedList.includes(Number(created.id))) {
-                              localStorage.setItem("my_list", JSON.stringify([...savedList, Number(created.id)]));
-                              window.dispatchEvent(new Event("itinerary_updated"));
-                            }
-                            setShowResults(false);
-                            setQuery("");
-                          }
+                          saveCustomItineraryPlace(itineraryPlace);
+                          window.dispatchEvent(new Event("itinerary_updated"));
+                          setShowResults(false);
+                          setQuery("");
                         } catch (err) {
                           console.error(err);
                           alert("Đã xảy ra lỗi khi thêm địa điểm");
@@ -329,7 +321,7 @@ export default function PlaceSearch() {
                         + Thêm
                       </span>
                     </button>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

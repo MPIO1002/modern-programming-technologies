@@ -1,44 +1,45 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
-import PlaceSearch from "./components/PlaceSearch";
 import PlaceExplorer from "./components/PlaceExplorer";
-import type { Place } from "./components/types";
+import PlaceGridSkeleton from "./components/PlaceGridSkeleton";
+import PlaceSearch from "./components/PlaceSearch";
+import { normalizePlaces } from "@/services/places.service";
 
-const API_URL = "/api/places";
+async function PlacesContent() {
+  const apiUrl = process.env.MOCKAPI_PLACES_URL;
 
-export default function PlacesPage() {
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchPlaces() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const res = await fetch(API_URL);
-
-        if (!res.ok) {
-          throw new Error("Không thể lấy dữ liệu địa điểm");
-        }
-
-        const data: Place[] = await res.json();
-
-        setPlaces(data);
-      } catch (error) {
-        console.error(error);
-        setError("Không thể tải danh sách địa điểm.");
-      } finally {
-        setLoading(false);
-      }
+  try {
+    if (!apiUrl) {
+      throw new Error("Thiếu cấu hình MOCKAPI_PLACES_URL");
     }
 
-    fetchPlaces();
-  }, []);
+    const response = await fetch(apiUrl, {
+      next: { revalidate: 60 },
+    });
 
+    if (!response.ok) {
+      throw new Error(`Không thể lấy dữ liệu địa điểm (${response.status})`);
+    }
+
+    const places = normalizePlaces(await response.json());
+
+    return <PlaceExplorer places={places} />;
+  } catch (error) {
+    console.error("Load places error:", error);
+
+    return (
+      <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
+        <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
+          <p className="text-sm font-medium text-red-600">
+            Không thể tải danh sách địa điểm.
+          </p>
+        </div>
+      </section>
+    );
+  }
+}
+
+export default function PlacesPage() {
   return (
     <main
       className="
@@ -109,20 +110,15 @@ export default function PlacesPage() {
 
       {/* PLACE SYSTEM */}
       <div className="mt-20 max-[600px]:mt-14">
-        {error ? (
-          <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
-            <div className="rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
-              <p className="text-sm font-medium text-red-600">
-                {error}
-              </p>
-            </div>
-          </section>
-        ) : (
-          <PlaceExplorer
-            places={places}
-            loading={loading}
-          />
-        )}
+        <Suspense
+          fallback={
+            <section className="mx-auto w-full max-w-[1080px] px-4 sm:px-6 lg:px-0">
+              <PlaceGridSkeleton />
+            </section>
+          }
+        >
+          <PlacesContent />
+        </Suspense>
       </div>
     </main>
   );

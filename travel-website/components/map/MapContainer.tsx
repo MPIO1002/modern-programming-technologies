@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
 import type { Location } from "@/types/vietmap";
+import { getCustomItineraryPlaces } from "@/services/itinerary-storage";
 
 interface RawPlace {
   id: string | number;
@@ -62,48 +63,55 @@ export default function MapContainer() {
 
     async function loadPlacesAndSaved() {
       try {
+        const customPlaces = getCustomItineraryPlaces();
+
         const res = await fetch("/api/places");
-        if (!res.ok) return;
+        let mappedPlaces: Location[] = [];
 
-        const data: RawPlace[] = await res.json();
-        if (!Array.isArray(data)) return;
+        if (res.ok) {
+          const data: RawPlace[] = await res.json();
+          if (Array.isArray(data)) {
+            mappedPlaces = data.map((p) => ({
+              id: String(p.id),
+              name: p.name,
+              address: p.ward || p.address || "",
+              lat: Number(p.lat),
+              lng: Number(p.lng),
+            }));
+          }
+        }
 
-        const mappedPlaces: Location[] = data.map((p) => ({
-          id: String(p.id),
-          name: p.name,
-          address: p.ward || p.address || "",
-          lat: Number(p.lat),
-          lng: Number(p.lng),
-        }));
-
-        setPlaces(mappedPlaces);
+        const combinedPopular = [...mappedPlaces, ...customPlaces];
+        setPlaces(combinedPopular);
 
         const savedList: number[] = JSON.parse(
           localStorage.getItem("my_list") || "[]"
         );
 
-        if (savedList.length > 0) {
-          const routePlaces = mappedPlaces.filter((p) =>
+        let savedRoutePlaces: Location[] = [];
+        if (savedList.length > 0 && mappedPlaces.length > 0) {
+          const filtered = mappedPlaces.filter((p) =>
             savedList.includes(Number(p.id))
           );
+          savedRoutePlaces = filtered.map((p, idx) => ({
+            id: `${p.id}-${idx}`,
+            name: p.name,
+            address: p.address,
+            lat: p.lat,
+            lng: p.lng,
+          }));
+        }
 
-          if (routePlaces.length > 0) {
-            const newWaypoints: (Location | null)[] = routePlaces.map(
-              (p, idx) => ({
-                id: `${p.id}-${idx}`,
-                name: p.name,
-                address: p.address,
-                lat: p.lat,
-                lng: p.lng,
-              })
-            );
+        const allSelected: (Location | null)[] = [
+          ...savedRoutePlaces,
+          ...customPlaces,
+        ];
 
-            while (newWaypoints.length < 2) {
-              newWaypoints.push(null);
-            }
-
-            setWaypoints(newWaypoints);
+        if (allSelected.length > 0) {
+          while (allSelected.length < 2) {
+            allSelected.push(null);
           }
+          setWaypoints(allSelected);
         }
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu địa điểm:", err);

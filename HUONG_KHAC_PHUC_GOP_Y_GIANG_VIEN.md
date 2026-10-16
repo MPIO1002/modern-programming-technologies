@@ -275,7 +275,7 @@ flowchart TD
 | :---: | :--- | :--- | :--- |
 | **1** | Refactor trang `/map` | `travel-website/app/(tourist)/map/page.tsx`<br>`components/map/MapContainer.tsx` | ✅ **ĐÃ HOÀN THÀNH:** Trang thành Server Component (Outer Shell & Metadata), tách logic tương tác sang Client Leaf Component `MapContainer.tsx`. Bỏ `"use client"` ở `page.tsx`. |
 | **2** | Refactor trang `/places` & thêm `loading.tsx` | `travel-website/app/(tourist)/places/page.tsx`<br>`travel-website/app/(tourist)/places/loading.tsx` | Chuyển sang async Server Component, có skeleton loading stream mượt mà. |
-| **3** | Thêm validation cho Server Action | `travel-website/actions/itinerary.ts` | Có kiểm tra dữ liệu đầu vào, bắt lỗi và trả về JSON chuẩn `{ success, message }`. |
+| **3** | Thêm validation cho Server Action | `travel-website/actions/itinerary.ts` | ✅ **ĐÃ HOÀN THÀNH:** Bổ sung Server-side Validation chặt chẽ (tên 3-100 ký tự, waypoints 2-10 điểm, tọa độ WGS84, whitelist vehicle), lưu vào Server Store, trả về JSON chuẩn `{ success, message, data, errors }`. |
 | **4** | Chạy `npm run build` | Terminal trong `travel-website` | Có ảnh chụp bảng Route Tree (`○ Static`, `ƒ Dynamic`) không có cảnh báo lỗi. |
 | **5** | Sửa Trang bìa, Lời mở đầu, Mục 1.3, Mục 2.3 | File Báo cáo (Word / LaTeX / Docs) | Trang bìa chuẩn tên; điền bảng tiến độ; viết xong mục 1.3 so sánh với Vite; sửa Nuxt và React Router 7. |
 | **6** | Xóa Overclaim tại Mục 3.3 | File Báo cáo Chương 3 | Sửa proxy là Route Handler, bỏ "bảo mật tuyệt đối", giải thích đúng cơ chế tải Tilemap. |

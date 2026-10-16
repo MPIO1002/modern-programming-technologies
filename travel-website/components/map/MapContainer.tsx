@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
 import type { Location } from "@/types/vietmap";
+
+interface RawPlace {
+  id: string | number;
+  name: string;
+  ward?: string;
+  address?: string;
+  lat: string | number;
+  lng: string | number;
+}
 
 // Dynamic import Leaflet component phía client với ssr: false (tránh lỗi 'window is not defined')
 const VietmapLeaflet = dynamic(() => import("./VietmapLeaflet"), {
@@ -44,44 +53,64 @@ export default function MapContainer() {
     setWaypoints,
   } = useVietmapRoute();
 
+  const [places, setPlaces] = useState<Location[]>([]);
   const initRef = useRef(false);
 
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
 
-    async function loadSavedPlaces() {
+    async function loadPlacesAndSaved() {
       try {
-        const savedList: number[] = JSON.parse(localStorage.getItem("my_list") || "[]");
-        if (savedList.length > 0) {
-          const res = await fetch("/api/places");
-          if (res.ok) {
-            const data = await res.json();
-            const routePlaces = data.filter((p: any) => savedList.includes(Number(p.id)));
+        const res = await fetch("/api/places");
+        if (!res.ok) return;
 
-            if (routePlaces.length > 0) {
-              const newWaypoints: (Location | null)[] = routePlaces.map((p: any, idx: number) => ({
+        const data: RawPlace[] = await res.json();
+        if (!Array.isArray(data)) return;
+
+        const mappedPlaces: Location[] = data.map((p) => ({
+          id: String(p.id),
+          name: p.name,
+          address: p.ward || p.address || "",
+          lat: Number(p.lat),
+          lng: Number(p.lng),
+        }));
+
+        setPlaces(mappedPlaces);
+
+        const savedList: number[] = JSON.parse(
+          localStorage.getItem("my_list") || "[]"
+        );
+
+        if (savedList.length > 0) {
+          const routePlaces = mappedPlaces.filter((p) =>
+            savedList.includes(Number(p.id))
+          );
+
+          if (routePlaces.length > 0) {
+            const newWaypoints: (Location | null)[] = routePlaces.map(
+              (p, idx) => ({
                 id: `${p.id}-${idx}`,
                 name: p.name,
-                address: p.ward || p.address || "",
-                lat: Number(p.lat),
-                lng: Number(p.lng),
-              }));
+                address: p.address,
+                lat: p.lat,
+                lng: p.lng,
+              })
+            );
 
-              while (newWaypoints.length < 2) {
-                newWaypoints.push(null);
-              }
-
-              setWaypoints(newWaypoints);
+            while (newWaypoints.length < 2) {
+              newWaypoints.push(null);
             }
+
+            setWaypoints(newWaypoints);
           }
         }
       } catch (err) {
-        console.error("Lỗi khi tải lộ trình đã lưu:", err);
+        console.error("Lỗi khi tải dữ liệu địa điểm:", err);
       }
     }
 
-    loadSavedPlaces();
+    loadPlacesAndSaved();
   }, [setWaypoints]);
 
   return (
@@ -95,6 +124,7 @@ export default function MapContainer() {
         routeInfo={routeInfo}
         loading={loading}
         error={error}
+        places={places}
         onUpdate={updateWaypoint}
         onAdd={addWaypoint}
         onRemove={removeWaypoint}

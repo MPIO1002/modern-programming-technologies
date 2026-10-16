@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faLocationDot,
@@ -58,11 +58,27 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h} giờ ${m} phút` : `${h} giờ`;
 }
 
-function formatVietmapAddress(place: any): string {
+interface VietmapAutocompleteItem {
+  ref_id: string;
+  name?: string;
+  display?: string;
+  address?: string;
+  categories?: string[];
+  boundaries?: Array<{ type: number; full_name?: string }>;
+}
+
+interface VietmapPlaceDetail {
+  lat?: number | string;
+  lng?: number | string;
+}
+
+function formatVietmapAddress(
+  place: VietmapAutocompleteItem | null | undefined
+): string {
   if (!place) return "";
   const boundaries = place.boundaries || [];
-  const ward = boundaries.find((b: any) => b.type === 2);
-  const city = boundaries.find((b: any) => b.type === 0);
+  const ward = boundaries.find((b) => b.type === 2);
+  const city = boundaries.find((b) => b.type === 0);
   const parts = [ward?.full_name, city?.full_name].filter(Boolean);
   if (place.name && parts.length > 0) {
     return `${place.name}, ${parts.join(", ")}`;
@@ -86,43 +102,35 @@ function WaypointSearchItem({
   placeholder,
   popularPlaces,
 }: WaypointSearchProps) {
-  const [isEditing, setIsEditing] = useState(!value);
+  const [isManualEditing, setIsManualEditing] = useState(false);
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<VietmapAutocompleteItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const isEditing = isManualEditing || !value;
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Sync state when external value changes
-  useEffect(() => {
-    if (value) {
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
-    }
-  }, [value]);
 
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setShowDropdown(false);
-        if (value) {
-          setIsEditing(false);
-        }
+        setIsManualEditing(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [value]);
+  }, []);
 
   // Autocomplete fetch with debounce
   useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setSuggestions([]);
       return;
     }
 
@@ -139,8 +147,8 @@ function WaypointSearchItem({
           setSuggestions(Array.isArray(data) ? data : []);
           setShowDropdown(true);
         }
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
+      } catch (err: unknown) {
+        if ((err as Error)?.name !== "AbortError") {
           console.error("Lỗi tìm kiếm Vietmap:", err);
         }
       } finally {
@@ -155,24 +163,25 @@ function WaypointSearchItem({
   }, [query]);
 
   // Handle selecting a Vietmap autocomplete suggestion
-  const handleSelectSuggestion = async (item: any) => {
+  const handleSelectSuggestion = async (item: VietmapAutocompleteItem) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/vietmap/place?ref_id=${item.ref_id}`);
       if (!res.ok) throw new Error("Không thể lấy tọa độ");
-      const details = await res.json();
+      const details: VietmapPlaceDetail = await res.json();
 
-      if (details && details.lat && details.lng) {
+      if (details && details.lat != null && details.lng != null) {
         onChange({
-          id: `${item.ref_id || "loc"}-${Date.now()}`,
-          name: item.name || item.display,
+          id: item.ref_id || `loc-${item.name || "point"}`,
+          name: item.name || item.display || "Địa điểm",
           address: formatVietmapAddress(item),
           lat: Number(details.lat),
           lng: Number(details.lng),
         });
-        setIsEditing(false);
+        setIsManualEditing(false);
         setShowDropdown(false);
         setQuery("");
+        setSuggestions([]);
       } else {
         alert("Không tìm thấy tọa độ của địa điểm này.");
       }
@@ -188,11 +197,11 @@ function WaypointSearchItem({
   const handleSelectPopular = (place: Location) => {
     onChange({
       ...place,
-      id: `${place.id}-${Date.now()}`,
     });
-    setIsEditing(false);
+    setIsManualEditing(false);
     setShowDropdown(false);
     setQuery("");
+    setSuggestions([]);
   };
 
   // If already selected and not in editing mode -> Display place card
@@ -202,7 +211,7 @@ function WaypointSearchItem({
         <div
           className="min-w-0 flex-1 cursor-pointer select-none"
           onClick={() => {
-            setIsEditing(true);
+            setIsManualEditing(true);
             setTimeout(() => inputRef.current?.focus(), 50);
           }}
         >
@@ -220,7 +229,7 @@ function WaypointSearchItem({
           <button
             type="button"
             onClick={() => {
-              setIsEditing(true);
+              setIsManualEditing(true);
               setTimeout(() => inputRef.current?.focus(), 50);
             }}
             className="p-1 rounded text-slate-400 hover:text-[#0F4C75] hover:bg-slate-100 transition-colors"
@@ -230,7 +239,10 @@ function WaypointSearchItem({
           </button>
           <button
             type="button"
-            onClick={() => onChange(null)}
+            onClick={() => {
+              onChange(null);
+              setIsManualEditing(false);
+            }}
             className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
             title="Xóa địa điểm"
           >
@@ -254,7 +266,11 @@ function WaypointSearchItem({
           type="text"
           value={query}
           onChange={(e) => {
-            setQuery(e.target.value);
+            const nextVal = e.target.value;
+            setQuery(nextVal);
+            if (nextVal.trim().length < 2) {
+              setSuggestions([]);
+            }
             setShowDropdown(true);
           }}
           onFocus={() => setShowDropdown(true)}
@@ -280,7 +296,11 @@ function WaypointSearchItem({
         ) : value ? (
           <button
             type="button"
-            onClick={() => setIsEditing(false)}
+            onClick={() => {
+              setIsManualEditing(false);
+              setQuery("");
+              setSuggestions([]);
+            }}
             className="text-xs text-slate-400 hover:text-slate-600 shrink-0"
             title="Hủy"
           >
@@ -298,7 +318,9 @@ function WaypointSearchItem({
           {query.trim().length >= 2 ? (
             suggestions.length === 0 ? (
               <div className="py-4 text-center text-xs text-slate-400">
-                {loading ? "Đang tìm kiếm..." : "Không tìm thấy địa điểm phù hợp"}
+                {loading
+                  ? "Đang tìm kiếm..."
+                  : "Không tìm thấy địa điểm phù hợp"}
               </div>
             ) : (
               suggestions.map((item) => (
@@ -372,6 +394,7 @@ interface RouteControlPanelProps {
   routeInfo: RouteInfo | null;
   loading: boolean;
   error: string | null;
+  places: Location[];
   onUpdate: (index: number, loc: Location | null) => void;
   onAdd: () => void;
   onRemove: (index: number) => void;
@@ -382,12 +405,13 @@ interface RouteControlPanelProps {
   onClearError: () => void;
 }
 
-export default function RouteControlPanel({
+function RouteControlPanelComponent({
   waypoints,
   vehicle,
   routeInfo,
   loading,
   error,
+  places,
   onUpdate,
   onAdd,
   onRemove,
@@ -398,53 +422,48 @@ export default function RouteControlPanel({
   onClearError,
 }: RouteControlPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const [places, setPlaces] = useState<Location[]>([]);
   const [saving, setSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
 
-  const handleSaveItinerary = async () => {
+  const handleSaveItinerary = useCallback(async () => {
     const validWaypoints = waypoints.filter(Boolean) as Location[];
     if (validWaypoints.length < 2) return;
 
     try {
       setSaving(true);
-      const tripName = `Lộ trình ${validWaypoints[0].name} - ${validWaypoints[validWaypoints.length - 1].name}`;
+      const tripName = `Lộ trình ${validWaypoints[0].name} - ${
+        validWaypoints[validWaypoints.length - 1].name
+      }`;
       const res = await saveTripItineraryAction({
         tripName,
-        waypoints: validWaypoints.map((w) => ({ name: w.name, lat: w.lat, lng: w.lng })),
+        waypoints: validWaypoints.map((w) => ({
+          name: w.name,
+          lat: w.lat,
+          lng: w.lng,
+        })),
         vehicle,
         distanceKm: routeInfo?.distanceKm,
         durationMin: routeInfo?.durationMin,
       });
 
       if (res.success) {
+        setSaveErrorMsg(null);
         setSaveSuccessMsg(res.message);
         setTimeout(() => setSaveSuccessMsg(null), 4000);
+      } else {
+        setSaveSuccessMsg(null);
+        setSaveErrorMsg(res.message || "Dữ liệu không hợp lệ.");
+        setTimeout(() => setSaveErrorMsg(null), 5000);
       }
     } catch (err) {
       console.error("Lỗi khi gọi Server Action:", err);
+      setSaveErrorMsg("Lỗi kết nối máy chủ khi lưu hành trình.");
+      setTimeout(() => setSaveErrorMsg(null), 5000);
     } finally {
       setSaving(false);
     }
-  };
-
-  useEffect(() => {
-    fetch("/api/places")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const mapped = data.map((p: any) => ({
-            id: p.id.toString(),
-            name: p.name,
-            address: p.ward || p.address || "",
-            lat: Number(p.lat),
-            lng: Number(p.lng),
-          }));
-          setPlaces(mapped);
-        }
-      })
-      .catch(console.error);
-  }, []);
+  }, [waypoints, vehicle, routeInfo]);
 
   // ── Drag & Drop ───────────────────────────────────────────────────────
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -511,12 +530,13 @@ export default function RouteControlPanel({
                 />
               </div>
               <div className="min-w-0">
-                <h1
-                  className="font-bold text-sm leading-tight tracking-wide text-white truncate"
-                >
+                <h1 className="font-bold text-sm leading-tight tracking-wide text-white truncate">
                   Vietmap Route Finder
                 </h1>
-                <p className="text-xs font-medium truncate" style={{ color: `${C.light}bb` }}>
+                <p
+                  className="text-xs font-medium truncate"
+                  style={{ color: `${C.light}bb` }}
+                >
                   TP. Hồ Chí Minh
                 </p>
               </div>
@@ -582,10 +602,11 @@ export default function RouteControlPanel({
                 {waypoints.map((wp, i) => {
                   const isDragging = dragIndex === i;
                   const isDragOver = dragOverIndex === i && dragIndex !== i;
+                  const itemKey = wp?.id ? `wp-${wp.id}` : `slot-${i}`;
 
                   return (
                     <div
-                      key={i}
+                      key={itemKey}
                       draggable
                       onDragStart={(e) => handleDragStart(e, i)}
                       onDragOver={(e) => handleDragOver(e, i)}
@@ -655,7 +676,10 @@ export default function RouteControlPanel({
             </div>
 
             {/* ── Divider ────────────────────────────────────── */}
-            <div className="h-px w-full" style={{ background: `${C.light}80` }} />
+            <div
+              className="h-px w-full"
+              style={{ background: `${C.light}80` }}
+            />
 
             {/* ── Vehicle Selector ───────────────────────────── */}
             <div>
@@ -742,7 +766,10 @@ export default function RouteControlPanel({
                     </div>
                     <p className="text-lg font-black" style={{ color: C.dark }}>
                       {routeInfo.distanceKm}
-                      <span className="text-xs font-semibold ml-0.5" style={{ color: C.mid }}>
+                      <span
+                        className="text-xs font-semibold ml-0.5"
+                        style={{ color: C.mid }}
+                      >
                         km
                       </span>
                     </p>
@@ -770,8 +797,22 @@ export default function RouteControlPanel({
             {/* ── Success Banner for Server Action ────────────────── */}
             {saveSuccessMsg && (
               <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium animate-in fade-in duration-200">
-                <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <FontAwesomeIcon
+                  icon={faCheck}
+                  className="w-3.5 h-3.5 text-emerald-600 shrink-0"
+                />
                 <span className="flex-1">{saveSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* ── Error Banner for Server Action Validation ───────── */}
+            {saveErrorMsg && (
+              <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium animate-in fade-in duration-200">
+                <FontAwesomeIcon
+                  icon={faCircleExclamation}
+                  className="w-3.5 h-3.5 text-rose-600 shrink-0"
+                />
+                <span className="flex-1">{saveErrorMsg}</span>
               </div>
             )}
 
@@ -848,7 +889,10 @@ export default function RouteControlPanel({
                   }}
                   title="Xóa lộ trình"
                 >
-                  <FontAwesomeIcon icon={faRotateLeft} className="w-3.5 h-3.5" />
+                  <FontAwesomeIcon
+                    icon={faRotateLeft}
+                    className="w-3.5 h-3.5"
+                  />
                 </button>
               )}
             </div>
@@ -858,3 +902,5 @@ export default function RouteControlPanel({
     </div>
   );
 }
+
+export default memo(RouteControlPanelComponent);

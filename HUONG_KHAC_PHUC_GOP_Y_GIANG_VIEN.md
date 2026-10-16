@@ -29,7 +29,7 @@
 | STT | Nội dung Giảng viên góp ý | Hiện trạng trong Báo cáo PDF | Hiện trạng mã nguồn thực tế (`travel-website`) | Đánh giá & Hướng khắc phục |
 | :---: | :--- | :--- | :--- | :--- |
 | **1** | **Điểm làm tốt (Cần phát huy)** | Mục 4.1 bám dự án thật; giải thích Route Group, dynamic route `[slug]`, `not-found.tsx`, `await params`, route.ts proxy giấu API Key, Ch.5-8 có bảng đo. | Khớp với cây thư mục `app/(tourist)` và `app/api/vietmap`. | **Giữ nguyên cấu trúc cốt lõi**, dùng làm chuẩn mực để triển khai cho các chương còn lại. |
-| **2** | **Ranh giới Server / Client Component & Cây thư mục** | Mục 3.3 và 4.4.2 mô tả `page/layout` là Server Components; nhưng 4.3.1 lại viết trang bản đồ là Client Component. Cây thư mục ghi sai vị trí `SidebarItinerary`. | `app/(tourist)/map/page.tsx` có `"use client"` (toàn bộ trang thành client). `SidebarItinerary` nằm ở `components/layout/SidebarItinerary.tsx`, nhúng trong `app/(tourist)/layout.tsx`. | **Refactor mã nguồn:** Tách `map/page.tsx` thành Server Component bọc ngoài, đẩy tương tác sang Client Leaf Component. Đồng nhất mô tả trong báo cáo; vẽ lại cây thư mục khớp 100% repo. |
+| **2** | **Ranh giới Server / Client Component & Cây thư mục** | Mục 3.3 và 4.4.2 mô tả `page/layout` là Server Components; nhưng 4.3.1 lại viết trang bản đồ là Client Component. Cây thư mục ghi sai vị trí `SidebarItinerary`. | **Đã Refactor:** `app/(tourist)/map/page.tsx` là Server Component (Shell & Metadata), `components/map/MapContainer.tsx` là Client Leaf Component. `SidebarItinerary` ở `components/layout/SidebarItinerary.tsx` nhúng trong `app/(tourist)/layout.tsx`. | **Đã hoàn thành:** Tách trang map thành Server Component, cô lập tương tác vào Client Leaf Component. Đồng nhất mô tả và vẽ lại cây thư mục khớp 100% repo. |
 | **3** | **Lỗi Overclaim & Sai kiến trúc tại Mục 3.3** | Nói dùng "Server Components & Server Actions" làm proxy VietMap; nói "RSC Payload chứa tuyến đường"; tuyên bố "bảo mật tuyệt đối, khóa hoàn toàn vỏ hình", "hơn 600.000 km đường". | Proxy thực tế là **Route Handlers** (`app/api/vietmap/*/route.ts`); tuyến đường lấy qua Client fetch REST; Leaflet tải tile map trực tiếp từ CDN VietMap với key ở URL client (`VietmapLeaflet.tsx`). | **Đính chính khoa học:** Proxy là Route Handler; Server Action chỉ dùng lưu hành trình. Tuyến đường lấy theo nhu cầu client qua REST, không qua RSC ban đầu. Thừa nhận key tilemap tải trực tiếp (bảo vệ bằng Domain Whitelist), chỉ có các API dịch vụ định tuyến/tìm kiếm là giấu kín trên server. Xóa bỏ số liệu không kiểm chứng. |
 | **4** | **Cấu hình & Minh chứng Next.js 16** | Thiếu thông số phiên bản, mập mờ giữa `revalidate` và `use cache`, thiếu minh chứng build route tree, thiếu phân tích hydration và mismatch ở Sidebar. | `package.json` dùng **Next.js 16.3.5**, **React 19.2.8**; không bật Cache Components; `places/[slug]` dùng `{ next: { revalidate: 60 } }`; `SidebarItinerary` đọc `localStorage`. | **Bổ sung:** Khẳng định dùng Next.js 16.3.5 với cơ chế Data Cache chuẩn (`next.revalidate`), không bật Cache Components. Bổ sung bảng terminal `next build` (`○ Static`, `ƒ Dynamic`). Giải thích cơ chế `next/link`, soft navigation, URL state và xử lý Hydration mismatch cho `SidebarItinerary`. |
 | **5** | **Thí nghiệm Cache (Chương 5)** | Bảng 5.1 trống cột sau 60s; nhầm lẫn giữa Full Route Cache và Data Cache; sai số mục (5.4.2/5.4.4) và nhầm công thức phần trăm cải thiện. | Đã cấu hình `revalidate: 60` tại `places/[slug]/page.tsx` khi gọi MockAPI. | **Bổ sung số liệu thực nghiệm đầy đủ:** Đo kiểm ở chế độ Production (`next start`): Lần 1 (Miss), Lần 2 (Hit Data Cache), Sau 60s (Stale-While-Revalidate). Phân biệt 3 tầng cache (Request Memoization, Data Cache, Full Route Cache). Sửa lại các tỷ lệ phần trăm toán học chuẩn xác. |
@@ -55,20 +55,97 @@
 
 ---
 
-### Góp ý 2: Thống nhất ranh giới Server / Client Component & Cây thư mục
+### Góp ý 2: Thống nhất ranh giới Server / Client Component & Cây thư mục [ĐÃ HOÀN THÀNH REFACTOR MÃ NGUỒN]
 * **Vấn đề cần xử lý:**
   - Báo cáo có sự mâu thuẫn: Mục 3.3 và 4.4.2 nói `page/layout` là Server Components, nhưng 4.3.1 lại mô tả trang bản đồ là Client Component.
-  - Mã nguồn thực tế: `app/(tourist)/map/page.tsx` đang có `"use client"` ở dòng 1.
-* **Kế hoạch Refactor mã nguồn:**
-  - Tách `app/(tourist)/map/page.tsx` thành **Server Component chuẩn**: Đảm nhận sinh Metadata, layout bao bọc tĩnh, giữ phần lớn code trên máy chủ.
-  - Tách phần tương tác bản đồ (gọi hook `useVietmapRoute`, `localStorage`, `RouteControlPanel`, `MapWrapper`) sang Client Component lá (ví dụ: `components/map/MapContainer.tsx`).
-* **Kế hoạch Viết báo cáo:**
-  - Đồng nhất nội dung ở mọi mục: `app/(tourist)/map/page.tsx` là Server Component đóng vai trò khung vỏ (Shell), các component tương tác bên dưới là Client Component có chỉ thị `'use client'`.
+  - Mã nguồn thực tế: `app/(tourist)/map/page.tsx` đã được tách thành **Server Component chuẩn**, loại bỏ chỉ thị `"use client"`.
+* **Kết quả Refactor mã nguồn (Đã thực hiện xong):**
+  - **Tách `app/(tourist)/map/page.tsx` thành Server Component chuẩn (Outer Shell):** Bỏ chỉ thị `"use client"`, đảm nhận sinh `Metadata` tĩnh cho SEO, render layout bao bọc `<main>` và nhúng Client Leaf Component.
+  - **Tạo Client Leaf Component `components/map/MapContainer.tsx`:** Có chỉ thị `"use client"` ở dòng 1, đóng gói toàn bộ state tương tác (`waypoints`, `vehicle`, `routeInfo`), hook `useVietmapRoute`, `localStorage`, dynamic import `VietmapLeaflet` (`ssr: false`) và render `RouteControlPanel`.
+  - Tuân thủ 100% nguyên lý kiến trúc của Next.js: *"Moving Client Components to the Leaves"* (Đẩy ranh giới Client xuống tận cùng các lá của cây Component).
+* **Kế hoạch Viết & Đồng nhất báo cáo:**
+  - Đồng nhất nội dung ở mọi mục: `app/(tourist)/map/page.tsx` là Server Component đóng vai trò khung vỏ (Shell), các component tương tác bên dưới (`MapContainer`, `RouteControlPanel`, `VietmapLeaflet`, `SidebarItinerary`) là Client Component có chỉ thị `'use client'`.
   - Giải thích rõ: `app/(tourist)/map` và `app/map` cùng ánh xạ URL `/map` vì Route Group không tạo URL segment. Khẳng định đây là quy ước chuẩn của Next.js, không phải lỗi xung đột route.
   - Cập nhật cây thư mục chuẩn xác 100% theo repo:
-    + `SidebarItinerary` nằm tại `components/layout/SidebarItinerary.tsx` và được nhúng vào `app/(tourist)/layout.tsx`.
-    + Server Action nằm tại `actions/itinerary.ts`.
-    + Loading skeleton nằm tại `app/(tourist)/places/loading.tsx`.
+    + `SidebarItinerary` nằm tại `components/layout/SidebarItinerary.tsx` và được nhúng vào `app/(tourist)/layout.tsx` (dùng `useEffect` đọc `localStorage` để chống Hydration Mismatch).
+    + `MapContainer` nằm tại `components/map/MapContainer.tsx` (Client Leaf Component của `/map`).
+
+* **Cây thư mục chuẩn xác 100% theo Repo thực tế (`travel-website`):**
+
+```text
+travel-website/
+├── app/
+│   ├── (tourist)/                                # Route Group gom nhóm giao diện du khách (không sinh segment URL)
+│   │   ├── layout.tsx                            # Layout chung của nhóm tourist (nhúng Navbar, Footer, SidebarItinerary)
+│   │   ├── page.tsx                              # Trang chủ du lịch (URL: /)
+│   │   ├── map/                                  # Module Bản đồ & Tìm đường (URL: /map)
+│   │   │   ├── layout.tsx                        # Metadata chuyên biệt cho phân hệ bản đồ
+│   │   │   └── page.tsx                          # Server Component (Khung vỏ Shell & Metadata tĩnh)
+│   │   └── places/                               # Phân hệ Khám phá Địa điểm (URL: /places)
+│   │       ├── page.tsx                          # Danh sách địa điểm du lịch
+│   │       ├── components/                       # Client UI components phục vụ riêng cho trang places
+│   │       │   ├── CurrentLocationButton.tsx
+│   │       │   ├── PlaceCard.tsx
+│   │       │   ├── PlaceCardSkeleton.tsx
+│   │       │   ├── PlaceExplorer.tsx
+│   │       │   ├── PlaceFilters.tsx
+│   │       │   ├── PlaceList.tsx
+│   │       │   ├── PlaceSearch.tsx
+│   │       │   ├── SavedPlacesButton.tsx
+│   │       │   └── types.ts
+│   │       └── [slug]/                           # Dynamic Route Segment (URL: /places/:slug)
+│   │           ├── loading.tsx                   # Loading UI tức thời khi tải thông tin địa điểm
+│   │           ├── not-found.tsx                 # Giao diện thông báo 404 kích hoạt bởi notFound()
+│   │           └── page.tsx                      # Server Component render chi tiết địa điểm (await params)
+│   ├── api/                                      # Route Handlers đóng vai trò REST API & Reverse Proxy
+│   │   ├── places/
+│   │   │   └── route.ts                          # Endpoint trả danh sách địa điểm nội bộ
+│   │   └── vietmap/                              # Reverse Proxy bảo mật: Ẩn 100% VIETMAP_API_KEY phía server
+│   │       ├── administrative/route.ts
+│   │       ├── autocomplete/route.ts
+│   │       ├── place/route.ts
+│   │       ├── reverse/route.ts
+│   │       └── route/route.ts                    # POST Proxy tính toán lộ trình đa điểm VietMap API
+│   ├── favicon.ico
+│   ├── globals.css                               # Tailwind CSS tokens & quy tắc style toàn cục
+│   └── layout.tsx                                # Root Layout tối cao bọc HTML/Body toàn ứng dụng
+├── components/
+│   ├── home/                                     # Components trang chủ
+│   │   ├── FeaturedPlaces.tsx
+│   │   ├── HeroBanner.tsx
+│   │   ├── QuickSearchBar.tsx
+│   │   └── SampleItineraries.tsx
+│   ├── layout/                                   # Components cấu trúc bố cục
+│   │   ├── Footer.tsx
+│   │   ├── Navbar.tsx
+│   │   └── SidebarItinerary.tsx                  # Client Component ('use client') nhúng vào app/(tourist)/layout.tsx
+│   ├── map/                                      # Phân hệ Components Bản đồ VietMap
+│   │   ├── MapContainer.tsx                      # Client Leaf Component ('use client') gom state, lazy load Leaflet & điều khiển
+│   │   ├── RouteControlPanel.tsx                 # Bảng điều khiển lộ trình, thêm/xóa/đổi thứ tự waypoint
+│   │   └── VietmapLeaflet.tsx                    # Canvas bản đồ tương tác DOM thực tế với Leaflet
+│   ├── AddButton.tsx
+│   ├── InfoCard.tsx
+│   ├── theme-provider.tsx
+│   └── ThemeToggle.tsx
+├── constants/
+│   └── locations.ts                              # Tọa độ mặc định trung tâm TP.HCM, zoom levels
+├── hooks/
+│   └── useVietmapRoute.ts                        # Custom hook điều khiển lộ trình & gọi API
+├── public/
+│   ├── vietmap/
+│   │   └── province.json                         # Dữ liệu phân cấp hành chính tỉnh/thành
+│   └── *.svg                                     # Bộ nhận diện thương hiệu & icons SVG
+├── services/
+│   └── vietmap.service.ts                        # Service xử lý gọi các route proxy VietMap
+├── types/
+│   ├── place.ts                                  # Định nghĩa kiểu dữ liệu địa điểm du lịch
+│   └── vietmap.ts                                # Định nghĩa kiểu tọa độ Location, RouteInfo, Waypoints
+├── .env.local                                    # Biến môi trường nhạy cảm (VIETMAP_API_KEY)
+├── eslint.config.mjs
+├── next.config.ts                                # Cấu hình Next.js 16
+├── package.json                                  # Khai báo Next.js 16.3.5, React 19.2.8
+└── tsconfig.json                                 # Cấu hình TypeScript 5 & path alias @/*
+```
 
 ---
 
@@ -196,7 +273,7 @@ flowchart TD
 
 | Bước | Hạng mục công việc | Vị trí file liên quan | Tiêu chí hoàn thành (Done Definition) |
 | :---: | :--- | :--- | :--- |
-| **1** | Refactor trang `/map` | `travel-website/app/(tourist)/map/page.tsx`<br>`components/map/MapContainer.tsx` | Trang thành Server Component, tách logic client sang component lá. Bỏ `"use client"` ở `page.tsx`. |
+| **1** | Refactor trang `/map` | `travel-website/app/(tourist)/map/page.tsx`<br>`components/map/MapContainer.tsx` | ✅ **ĐÃ HOÀN THÀNH:** Trang thành Server Component (Outer Shell & Metadata), tách logic tương tác sang Client Leaf Component `MapContainer.tsx`. Bỏ `"use client"` ở `page.tsx`. |
 | **2** | Refactor trang `/places` & thêm `loading.tsx` | `travel-website/app/(tourist)/places/page.tsx`<br>`travel-website/app/(tourist)/places/loading.tsx` | Chuyển sang async Server Component, có skeleton loading stream mượt mà. |
 | **3** | Thêm validation cho Server Action | `travel-website/actions/itinerary.ts` | Có kiểm tra dữ liệu đầu vào, bắt lỗi và trả về JSON chuẩn `{ success, message }`. |
 | **4** | Chạy `npm run build` | Terminal trong `travel-website` | Có ảnh chụp bảng Route Tree (`○ Static`, `ƒ Dynamic`) không có cảnh báo lỗi. |

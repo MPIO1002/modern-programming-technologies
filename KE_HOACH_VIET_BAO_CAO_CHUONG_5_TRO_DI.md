@@ -16,7 +16,7 @@ Dưới đây là bảng phân loại chi tiết từng thành phần trong mã 
 | **1** | **Dynamic Route & Metadata Động** | ✅ **ĐÃ ĐÁP ỨNG** | `app/(tourist)/places/[slug]/page.tsx`<br>(Dòng 44–61: `generateMetadata()`) | **Tốt:** Đã sinh thẻ title, description, OpenGraph ảnh động theo từng địa điểm du lịch. Sẵn sàng đưa vào báo cáo Chương 8. |
 | **2** | **Cơ chế Caching & ISR (`revalidate: 60`)** | ✅ **ĐÃ ĐÁP ỨNG** | `app/(tourist)/places/[slug]/page.tsx`<br>(Dòng 28–30: `fetch` với `next: { revalidate: 60 }`) | **Tốt:** Đã thiết lập cơ chế tái tạo tĩnh tăng dần. Cần thêm số liệu đo đạc TTFB vào báo cáo Chương 5. |
 | **3** | **Proxy bảo mật API Key Vietmap** | ✅ **ĐÃ ĐÁP ỨNG** | `app/api/vietmap/*/route.ts`<br>`services/vietmap.service.ts` | **Tốt:** Đã tạo các Route Handler trung gian giấu `VIETMAP_API_KEY` an toàn phía server. Đưa vào báo cáo Chương 9. |
-| **4** | **Định tuyến Đa điểm dừng (Routing) & Vẽ bản đồ** | ✅ **ĐÃ ĐÁP ỨNG** | `hooks/useVietmapRoute.ts`<br>`app/api/vietmap/route/route.ts`<br>`components/map/MapWrapper.tsx`<br>`components/map/RouteControlPanel.tsx` | **Tốt:** Đã xây dựng hoàn chỉnh quản lý waypoints, đổi thứ tự điểm dừng, chọn loại phương tiện (car, motorcycle...), gọi Vietmap Route API v4 và vẽ polyline. Đưa vào Chương 10. |
+| **4** | **Định tuyến Đa điểm dừng (Routing) & Vẽ bản đồ** | ✅ **ĐÃ ĐÁP ỨNG** | `hooks/useVietmapRoute.ts`<br>`app/api/vietmap/route/route.ts`<br>`components/map/MapContainer.tsx`<br>`components/map/RouteControlPanel.tsx` | **Tốt:** Đã xây dựng hoàn chỉnh quản lý waypoints, đổi thứ tự điểm dừng, chọn loại phương tiện (car, motorcycle...), gọi Vietmap Route API v4 và vẽ polyline. Đưa vào Chương 10. |
 | **5** | **Component Skeleton Giao diện** | ✅ **ĐÃ ĐÁP ỨNG (UI)** | `app/(tourist)/places/components/PlaceCardSkeleton.tsx`<br>`PlaceList.tsx` (Dòng 10–31) | **Đã có sẵn UI Skeleton:** Có đầy đủ animation pulse đẹp mắt. Không cần tạo mới giao diện skeleton. |
 | **6** | **Trang danh sách Địa điểm `places/page.tsx`** | ❌ **CHƯA ĐÁP ỨNG** | `app/(tourist)/places/page.tsx`<br>(Dòng 1: `"use client"`, Dòng 16–40: `useEffect`) | ⚠️ **Lỗi Anti-pattern:** Đang fetch kiểu React SPA thuần. Cần refactor bỏ `"use client"`, chuyển sang Server Component fetch trực tiếp. |
 | **7** | **Suspense & HTML Streaming** | ❌ **CHƯA ĐÁP ỨNG** | `app/(tourist)/places/page.tsx`<br>`app/(tourist)/places/loading.tsx` | ⚠️ **Chưa kích hoạt Streaming:** Chưa có file `loading.tsx` hoặc thẻ `<Suspense>` bọc ngoài danh sách để kích hoạt React Fizz Stream. |
@@ -167,10 +167,10 @@ Mỗi chương đều tuân thủ nghiêm ngặt **5 câu hỏi chuẩn mực c�
     - Nhận danh sách waypoints và loại phương tiện `vehicle`.
     - Ghép chuỗi tham số nhiều điểm `point=lat,lng` gửi đến **VIETMAP Route API v4** (`https://maps.vietmap.vn/api/route/v4`).
   - **Xử lý Dữ liệu & Vẽ Polyline Tương tác:**
-    - Nhận dữ liệu Geometry/Points từ Vietmap, vẽ đường đi thực tế trên nền tảng bản đồ Leaflet (`MapWrapper.tsx`).
+    - Nhận dữ liệu Geometry/Points từ Vietmap, vẽ đường đi thực tế trên nền tảng bản đồ Leaflet (`MapContainer.tsx`).
     - Tính toán và hiển thị tổng cự ly (km), tổng thời gian ước tính (phút) và danh sách chỉ dẫn từng ngã rẽ (Turn-by-turn Instructions) trên [`RouteControlPanel.tsx`](file:///c:/Users/huynh/modern-programming-technologies/travel-website/components/map/RouteControlPanel.tsx).
 * **3. Nhóm đã thử/viết/chạy:**
-  - Files: `hooks/useVietmapRoute.ts`, `app/api/vietmap/route/route.ts`, `services/vietmap.service.ts`, `components/map/RouteControlPanel.tsx`, `components/map/MapWrapper.tsx`.
+  - Files: `hooks/useVietmapRoute.ts`, `app/api/vietmap/route/route.ts`, `services/vietmap.service.ts`, `components/map/RouteControlPanel.tsx`, `components/map/MapContainer.tsx`.
   - Kịch bản chạy thử: Tạo lộ trình 3 điểm dừng tại trung tâm TP. Hồ Chí Minh *(Chợ Bến Thành $\rightarrow$ Dinh Độc Lập $\rightarrow$ Thảo Cầm Viên)* trên cả hai chế độ: Ô tô (`car`) và Xe máy (`motorcycle`).
 * **4. Kết quả & Số liệu thực nghiệm:**
   | Phương tiện | Khoảng cách tổng cộng | Thời gian ước tính | Thời gian gọi API Route | Đặc điểm tuyến đường |

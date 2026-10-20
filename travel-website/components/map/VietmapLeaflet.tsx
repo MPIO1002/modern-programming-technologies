@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import type { Map as LeafletMap, Polyline, Marker } from "leaflet";
 import type { Location, RouteInfo } from "@/types/vietmap";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/constants/locations";
@@ -11,7 +11,10 @@ interface VietmapLeafletProps {
   routeInfo: RouteInfo | null;
 }
 
-const VIETMAP_API_KEY = process.env.VIETMAP_API_KEY ?? "";
+const VIETMAP_API_KEY =
+  process.env.NEXT_PUBLIC_VIETMAP_API_KEY ||
+  process.env.VIETMAP_API_KEY ||
+  "";
 
 function getTileConfig() {
   if (VIETMAP_API_KEY) {
@@ -34,9 +37,11 @@ function getMarkerColor(index: number, total: number): string {
   return "#3282B8";
 }
 
-function createSvgMarker(color: string, label: string) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const L = require("leaflet") as typeof import("leaflet");
+function createSvgMarker(
+  L: typeof import("leaflet"),
+  color: string,
+  label: string
+) {
   return L.divIcon({
     className: "",
     html: `
@@ -54,7 +59,7 @@ function createSvgMarker(color: string, label: string) {
   });
 }
 
-export default function VietmapLeaflet({
+function VietmapLeafletComponent({
   waypoints,
   routeInfo,
 }: VietmapLeafletProps) {
@@ -62,6 +67,11 @@ export default function VietmapLeaflet({
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const polylineRef = useRef<Polyline | null>(null);
+  const routeInfoRef = useRef(routeInfo);
+
+  useEffect(() => {
+    routeInfoRef.current = routeInfo;
+  }, [routeInfo]);
 
   // ── Initialize map ────────────────────────────────────────────────────
   useEffect(() => {
@@ -98,14 +108,21 @@ export default function VietmapLeaflet({
       });
     }
 
+    // Tự động căn chỉnh kích thước khi window resize
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener("resize", handleResize);
+
     mapRef.current = map;
     return () => {
+      window.removeEventListener("resize", handleResize);
       map.remove();
       mapRef.current = null;
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // ── Update markers ────────────────────────────────────────────────────
+  // ── Update markers (chỉ chạy lại khi waypoints thay đổi, không phụ thuộc routeInfo) ──
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -121,10 +138,9 @@ export default function VietmapLeaflet({
 
     filled.forEach((loc, idx) => {
       const color = getMarkerColor(idx, total);
-      const label =
-        idx === 0 ? "A" : idx === total - 1 ? String.fromCharCode(65 + idx) : String.fromCharCode(65 + idx);
+      const label = String.fromCharCode(65 + idx);
       const marker = L.marker([loc.lat, loc.lng], {
-        icon: createSvgMarker(color, label),
+        icon: createSvgMarker(L, color, label),
       })
         .addTo(map)
         .bindPopup(`<b>${label}. ${loc.name}</b><br/><small>${loc.address}</small>`);
@@ -132,13 +148,15 @@ export default function VietmapLeaflet({
     });
 
     // Fit bounds to all markers when no route yet
-    if (filled.length >= 2 && !routeInfo) {
+    if (filled.length >= 2 && !routeInfoRef.current) {
       const bounds = L.latLngBounds(filled.map((l) => [l.lat, l.lng] as [number, number]));
-      map.fitBounds(bounds, { padding: [60, 60] });
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [60, 60] });
+      }
     }
-  }, [waypoints, routeInfo]);
+  }, [waypoints]);
 
-  // ── Draw / clear polyline ─────────────────────────────────────────────
+  // ── Draw / clear polyline (chỉ cập nhật khi routeInfo thay đổi) ───────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -150,7 +168,7 @@ export default function VietmapLeaflet({
       polylineRef.current = null;
     }
 
-    if (!routeInfo) return;
+    if (!routeInfo || !routeInfo.coordinates || routeInfo.coordinates.length === 0) return;
 
     const polyline = L.polyline(routeInfo.coordinates, {
       color: "#3282B8",
@@ -161,7 +179,10 @@ export default function VietmapLeaflet({
     }).addTo(map);
 
     polylineRef.current = polyline;
-    map.fitBounds(polyline.getBounds(), { padding: [60, 60] });
+    const bounds = polyline.getBounds();
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [60, 60] });
+    }
   }, [routeInfo]);
 
   return (
@@ -171,3 +192,6 @@ export default function VietmapLeaflet({
     />
   );
 }
+
+const VietmapLeaflet = memo(VietmapLeafletComponent);
+export default VietmapLeaflet;

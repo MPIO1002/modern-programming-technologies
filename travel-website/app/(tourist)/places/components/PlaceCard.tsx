@@ -65,7 +65,8 @@ export default function PlaceCard({ place }: PlaceCardProps) {
         <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-[#3282B8]/20 transition-colors">
           <Link
             href={`/places/${place.slug || place.id}`}
-            className="w-full text-xs font-bold px-3 py-2.5 rounded-xl transition-colors text-center border border-[#0F4C75] text-[#0F4C75] bg-white hover:bg-[#0F4C75] hover:text-white dark:border-[#3282B8] dark:text-[#BBE1FA] dark:bg-transparent dark:hover:bg-[#3282B8] dark:hover:text-white shadow-sm inline-block"
+            className="w-full text-xs font-bold px-3 py-2.5 rounded-xl transition-colors text-center border border-[#0F4C75] text-[#0F4C75] bg-white hover:bg-[#0F4C75] 
+            hover:text-white dark:border-[#3282B8] dark:text-[#BBE1FA] dark:bg-transparent dark:hover:bg-[#3282B8] dark:hover:text-white shadow-sm inline-block"
           >
             Chi tiết
           </Link>

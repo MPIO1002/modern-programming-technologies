@@ -18,8 +18,13 @@ const variants = [
   },
 ];
 
-// Chỉ chạy Mobile
+// Chạy cả Desktop và Mobile
 const devices = [
+  {
+    name: "desktop",
+    preset: "desktop",
+    formFactor: "desktop",
+  },
   {
     name: "mobile",
     preset: null,
@@ -64,7 +69,10 @@ function runLighthouse(device, variant, runNumber) {
   });
 
   if (result.error) {
-    console.error("Không chạy được Lighthouse:", result.error.message);
+    console.error(
+      "Không chạy được Lighthouse:",
+      result.error.message
+    );
     process.exit(1);
   }
 
@@ -79,7 +87,7 @@ function runLighthouse(device, variant, runNumber) {
 async function main() {
   for (const device of devices) {
     for (let run = 1; run <= RUNS; run++) {
-      // Đảo thứ tự giữa các lần chạy để giảm ảnh hưởng do thứ tự đo.
+      // Đảo thứ tự blocking/streaming ở mỗi lượt.
       const order =
         run % 2 === 1
           ? variants
@@ -93,7 +101,7 @@ async function main() {
 
   console.log("\nHOÀN TẤT!");
   console.log(`Các báo cáo nằm tại: ${OUTPUT_DIR}`);
-  console.log("Tổng số báo cáo dự kiến: 10 file HTML.");
+  console.log("Tổng số báo cáo dự kiến: 20 file HTML.");
 }
 
 main();

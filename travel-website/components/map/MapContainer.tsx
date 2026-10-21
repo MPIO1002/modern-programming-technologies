@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
-import type { Location } from "@/types/vietmap";
+import type { Location, Vehicle } from "@/types/vietmap";
 import { getCustomItineraryPlaces } from "@/services/itinerary-storage";
+import type { SavedItineraryRecord } from "@/services/itinerary-server-store";
 
 interface RawPlace {
   id: string | number;
@@ -14,6 +15,10 @@ interface RawPlace {
   address?: string;
   lat: string | number;
   lng: string | number;
+}
+
+interface MapContainerProps {
+  initialSavedTrips?: SavedItineraryRecord[];
 }
 
 // Dynamic import Leaflet component phía client với ssr: false (tránh lỗi 'window is not defined')
@@ -36,7 +41,7 @@ const VietmapLeaflet = dynamic(() => import("./VietmapLeaflet"), {
  * Client Leaf Component: Quản lý toàn bộ state tương tác bản đồ,
  * gọi hook useVietmapRoute, đồng bộ localStorage, lazy load Leaflet và render control panel.
  */
-export default function MapContainer() {
+export default function MapContainer({ initialSavedTrips = [] }: MapContainerProps) {
   const {
     waypoints,
     vehicle,
@@ -56,6 +61,15 @@ export default function MapContainer() {
 
   const [places, setPlaces] = useState<Location[]>([]);
   const initRef = useRef(false);
+
+  // Xử lý nạp lịch trình đã lưu từ Server Store vào bản đồ
+  const handleLoadSavedTrip = useCallback(
+    (tripWaypoints: Location[], tripVehicle: Vehicle) => {
+      setWaypoints(tripWaypoints);
+      setVehicle(tripVehicle);
+    },
+    [setWaypoints, setVehicle]
+  );
 
   useEffect(() => {
     if (initRef.current) return;
@@ -133,6 +147,8 @@ export default function MapContainer() {
         loading={loading}
         error={error}
         places={places}
+        savedTrips={initialSavedTrips}
+        onLoadSavedTrip={handleLoadSavedTrip}
         onUpdate={updateWaypoint}
         onAdd={addWaypoint}
         onRemove={removeWaypoint}

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "trip_1792553146209",
+    "userId": "guest_05da36a5-c04",
+    "tripName": "Lộ trình Chợ Bến Thành - Dinh Độc Lập",
+    "waypoints": [
+      {
+        "name": "Chợ Bến Thành",
+        "lat": 10.7725168,
+        "lng": 106.6980208
+      },
+      {
+        "name": "Dinh Độc Lập",
+        "lat": 10.7769995,
+        "lng": 106.6927272
+      }
+    ],
+    "vehicle": "car",
+    "distanceKm": 0,
+    "durationMin": 0,
+    "createdAt": "2026-10-21T03:25:46.209Z"
+  }
+]

@@ -26,6 +26,7 @@ import {
 import { VEHICLE_OPTIONS } from "@/types/vietmap";
 import type { Location, Vehicle, RouteInfo } from "@/types/vietmap";
 import { saveTripItineraryAction } from "@/actions/itinerary";
+import type { SavedItineraryRecord } from "@/services/itinerary-server-store";
 
 // ── Brand palette ──────────────────────────────────────────────────────
 const C = {
@@ -395,6 +396,8 @@ interface RouteControlPanelProps {
   loading: boolean;
   error: string | null;
   places: Location[];
+  savedTrips?: SavedItineraryRecord[];
+  onLoadSavedTrip?: (waypoints: Location[], vehicle: Vehicle) => void;
   onUpdate: (index: number, loc: Location | null) => void;
   onAdd: () => void;
   onRemove: (index: number) => void;
@@ -412,6 +415,8 @@ function RouteControlPanelComponent({
   loading,
   error,
   places,
+  savedTrips = [],
+  onLoadSavedTrip,
   onUpdate,
   onAdd,
   onRemove,
@@ -425,6 +430,14 @@ function RouteControlPanelComponent({
   const [saving, setSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
+  const [localSavedTrips, setLocalSavedTrips] = useState<SavedItineraryRecord[]>(savedTrips);
+  const [showSavedSection, setShowSavedSection] = useState(true);
+
+  useEffect(() => {
+    if (savedTrips) {
+      setLocalSavedTrips(savedTrips);
+    }
+  }, [savedTrips]);
 
   const handleSaveItinerary = useCallback(async () => {
     const validWaypoints = waypoints.filter(Boolean) as Location[];
@@ -450,6 +463,9 @@ function RouteControlPanelComponent({
       if (res.success) {
         setSaveErrorMsg(null);
         setSaveSuccessMsg(res.message);
+        if (res.data) {
+          setLocalSavedTrips((prev) => [res.data!, ...prev.filter((t) => t.id !== res.data!.id)]);
+        }
         setTimeout(() => setSaveSuccessMsg(null), 4000);
       } else {
         setSaveSuccessMsg(null);
@@ -894,6 +910,92 @@ function RouteControlPanelComponent({
                     className="w-3.5 h-3.5"
                   />
                 </button>
+              )}
+            </div>
+
+            {/* ── Kho lưu trữ hành trình phía Server (Server Persistence Store) ── */}
+            <div className="pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowSavedSection((s) => !s)}
+                className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider py-1 text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <FontAwesomeIcon
+                    icon={faBookmark}
+                    className="w-3 h-3 text-emerald-600"
+                  />
+                  <span>Hành trình máy chủ ({localSavedTrips.length})</span>
+                </span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`w-2.5 h-2.5 transition-transform duration-200 ${
+                    showSavedSection ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {showSavedSection && (
+                <div className="mt-2 space-y-2">
+                  {localSavedTrips.length === 0 ? (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400">
+                      Chưa có hành trình nào được lưu trên máy chủ cho phiên của bạn.
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      {localSavedTrips.map((trip) => (
+                        <div
+                          key={trip.id}
+                          className="p-2 rounded-xl border border-slate-200 bg-white hover:border-blue-300 transition-all text-xs flex items-center justify-between gap-2 shadow-xs"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className="font-semibold text-slate-800 truncate"
+                              title={trip.tripName}
+                            >
+                              {trip.tripName}
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                              <span>{trip.waypoints.length} điểm</span>
+                              {trip.distanceKm > 0 && (
+                                <span>• {trip.distanceKm} km</span>
+                              )}
+                              <span>
+                                •{" "}
+                                {new Date(trip.createdAt).toLocaleDateString(
+                                  "vi-VN"
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          {onLoadSavedTrip && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const mappedWaypoints: Location[] =
+                                  trip.waypoints.map((wp, idx) => ({
+                                    id: `${trip.id}-wp-${idx}`,
+                                    name: wp.name,
+                                    address: wp.name,
+                                    lat: wp.lat,
+                                    lng: wp.lng,
+                                  }));
+                                onLoadSavedTrip(
+                                  mappedWaypoints,
+                                  (trip.vehicle as Vehicle) || "car"
+                                );
+                              }}
+                              className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-[11px] shrink-0 transition-colors"
+                              title="Nạp hành trình này lên bản đồ"
+                            >
+                              Nạp lại
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

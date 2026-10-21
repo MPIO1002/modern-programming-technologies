@@ -1,5 +1,36 @@
 [
   {
+    "id": "trip_1792557406660",
+    "userId": "guest_05da36a5-c04",
+    "tripName": "Lộ trình Vị trí hiện tại - Trường Đại Học Khoa Học Tự Nhiên - Đại Học Quốc Gia Tp Hcm Đường Nguyễn Văn Cừ",
+    "waypoints": [
+      {
+        "name": "Vị trí hiện tại",
+        "lat": 10.79224626692873,
+        "lng": 106.70243791422153
+      },
+      {
+        "name": "Dinh Độc Lập",
+        "lat": 10.7769995,
+        "lng": 106.6927272
+      },
+      {
+        "name": "Chợ Bến Thành",
+        "lat": 10.7725168,
+        "lng": 106.6980208
+      },
+      {
+        "name": "Trường Đại Học Khoa Học Tự Nhiên - Đại Học Quốc Gia Tp Hcm Đường Nguyễn Văn Cừ",
+        "lat": 10.762835599999999,
+        "lng": 106.6824824
+      }
+    ],
+    "vehicle": "car",
+    "distanceKm": 6.95,
+    "durationMin": 14,
+    "createdAt": "2026-10-21T04:36:46.660Z"
+  },
+  {
     "id": "trip_1792553146209",
     "userId": "guest_05da36a5-c04",
     "tripName": "Lộ trình Chợ Bến Thành - Dinh Độc Lập",

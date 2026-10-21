@@ -18,6 +18,7 @@ export default function PlaceSearch() {
   const [showResults, setShowResults] = useState(false);
 
   const [currentAddress, setCurrentAddress] = useState("");
+  const [currentCoords, setCurrentCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [focus, setFocus] = useState("");
 
   const searchRef = useRef<HTMLDivElement>(null);
@@ -140,6 +141,7 @@ export default function PlaceSearch() {
         const nextFocus = `${latitude},${longitude}`;
 
         setFocus(nextFocus);
+        setCurrentCoords({ lat: latitude, lng: longitude });
 
         try {
           const response = await fetch(
@@ -246,10 +248,10 @@ export default function PlaceSearch() {
           {showResults && suggestions.length > 0 && (
             <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.14)]">
               <div className="max-h-[420px] overflow-y-auto py-1.5">
-                {suggestions.map((place) => (
+                {suggestions.map((place, index) => (
                   <div
-                    key={place.ref_id}
-                    className="group flex w-full items-start gap-3 px-4 py-3.5 transition hover:bg-slate-50"
+                    key={`${place.ref_id || "sugg"}-${index}`}
+                    className="group flex w-full items-start justify-between gap-3 px-4 py-3.5 transition hover:bg-slate-50"
                   >
                     <button
                       type="button"
@@ -277,9 +279,11 @@ export default function PlaceSearch() {
                           )}
                       </span>
                     </button>
+
                     <button
                       type="button"
                       onClick={async (e) => {
+                        e.stopPropagation();
                         try {
                           const res = await fetch(`/api/vietmap/place?ref_id=${place.ref_id}`);
                           if (!res.ok) throw new Error("Lỗi khi lấy tọa độ");
@@ -295,7 +299,7 @@ export default function PlaceSearch() {
                           }
 
                           const itineraryPlace: Location = {
-                            id: `vietmap:${place.ref_id}`,
+                            id: `vietmap:${place.ref_id}-${Date.now()}`,
                             name: place.name || place.display,
                             address: formatCurrentAddress(place),
                             lat: Number(details.lat),
@@ -308,18 +312,13 @@ export default function PlaceSearch() {
                           setQuery("");
                         } catch (err) {
                           console.error(err);
-                          alert("Đã xảy ra lỗi khi thêm địa điểm");
+                          alert("Đã xảy ra lỗi khi thêm địa điểm vào lộ trình");
                         }
                       }}
-                      className="mt-2 shrink-0 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-400 transition hover:bg-indigo-100 hover:text-indigo-600"
+                      className="mt-2 shrink-0 rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white"
+                      title="Thêm vào lộ trình của bạn"
                     >
-                      <span className="min-[601px]:hidden">
-                        +
-                      </span>
-
-                      <span className="hidden min-[601px]:inline">
-                        + Thêm
-                      </span>
+                      + Thêm
                     </button>
                   </div>
                 ))}
@@ -377,37 +376,60 @@ export default function PlaceSearch() {
           <button
             type="button"
             onClick={() => {
-              console.log("Saved places");
+              window.dispatchEvent(new Event("itinerary_updated"));
             }}
             className="inline-flex h-[52px] min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-[15px] text-[13px] font-[650] whitespace-nowrap text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-[background,border-color,transform,box-shadow] duration-150 hover:-translate-y-px hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_5px_14px_rgba(15,23,42,0.06)] disabled:cursor-wait disabled:opacity-55"
+            title="Xem lộ trình đã lưu"
           >
-            <span className="text-base">♡</span>
+            <span className="text-base text-rose-500">♡</span>
 
             <span className="hidden sm:inline">
-              Địa chỉ đã lưu
+              Lộ trình của tôi
             </span>
 
-            <span className="sm:hidden">Đã lưu</span>
+            <span className="sm:hidden">Lộ trình</span>
           </button>
         </div>
       </div>
 
       {/* CURRENT LOCATION */}
       {currentAddress && (
-        <div className="mt-3 flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3.5">
-          <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white text-base text-indigo-500">
-            📍
-          </span>
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3.5">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-white text-base text-indigo-500">
+              📍
+            </span>
 
-          <div className="min-w-0">
-            <small className="block text-[10px] font-[700] uppercase tracking-[0.08em] text-indigo-500">
-              Vị trí hiện tại
-            </small>
+            <div className="min-w-0 flex-1">
+              <small className="block text-[10px] font-[700] uppercase tracking-[0.08em] text-indigo-500">
+                Vị trí hiện tại
+              </small>
 
-            <strong className="mt-1 block text-sm font-medium leading-6 text-slate-800">
-              {currentAddress}
-            </strong>
+              <strong className="mt-1 block text-sm font-medium leading-6 text-slate-800 truncate" title={currentAddress}>
+                {currentAddress}
+              </strong>
+            </div>
           </div>
+
+          {currentCoords && (
+            <button
+              type="button"
+              onClick={() => {
+                const itineraryPlace: Location = {
+                  id: `current-location-${Date.now()}`,
+                  name: "Vị trí hiện tại",
+                  address: currentAddress,
+                  lat: currentCoords.lat,
+                  lng: currentCoords.lng,
+                };
+                saveCustomItineraryPlace(itineraryPlace);
+                window.dispatchEvent(new Event("itinerary_updated"));
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700"
+            >
+              + Thêm vào lộ trình
+            </button>
+          )}
         </div>
       )}
 

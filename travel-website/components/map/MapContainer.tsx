@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import RouteControlPanel from "@/components/map/RouteControlPanel";
+import SavedItinerariesPanel from "@/components/map/SavedItinerariesPanel";
 import { useVietmapRoute } from "@/hooks/useVietmapRoute";
 import type { Location, Vehicle } from "@/types/vietmap";
 import { getCustomItineraryPlaces } from "@/services/itinerary-storage";
@@ -60,7 +61,18 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
   } = useVietmapRoute();
 
   const [places, setPlaces] = useState<Location[]>([]);
+  const [savedTrips, setSavedTrips] = useState<SavedItineraryRecord[]>(initialSavedTrips);
   const initRef = useRef(false);
+
+  useEffect(() => {
+    if (initialSavedTrips.length > 0) {
+      setSavedTrips(initialSavedTrips);
+    }
+  }, [initialSavedTrips]);
+
+  const handleTripSaved = useCallback((newTrip: SavedItineraryRecord) => {
+    setSavedTrips((prev) => [newTrip, ...prev.filter((t) => t.id !== newTrip.id)]);
+  }, []);
 
   // Xử lý nạp lịch trình đã lưu từ Server Store vào bản đồ
   const handleLoadSavedTrip = useCallback(
@@ -77,8 +89,6 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
 
     async function loadPlacesAndSaved() {
       try {
-        const customPlaces = getCustomItineraryPlaces();
-
         const res = await fetch("/api/places");
         let mappedPlaces: Location[] = [];
 
@@ -95,8 +105,7 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
           }
         }
 
-        const combinedPopular = [...mappedPlaces, ...customPlaces];
-        setPlaces(combinedPopular);
+        setPlaces(mappedPlaces);
 
         const savedList: number[] = JSON.parse(
           localStorage.getItem("my_list") || "[]"
@@ -115,6 +124,8 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
             lng: p.lng,
           }));
         }
+
+        const customPlaces = getCustomItineraryPlaces();
 
         const allSelected: (Location | null)[] = [
           ...savedRoutePlaces,
@@ -139,7 +150,7 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
     <div className="flex-1 relative h-full">
       <VietmapLeaflet waypoints={waypoints} routeInfo={routeInfo} />
 
-      {/* Floating control panel */}
+      {/* Floating control panel (bên trái) */}
       <RouteControlPanel
         waypoints={waypoints}
         vehicle={vehicle}
@@ -147,8 +158,8 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
         loading={loading}
         error={error}
         places={places}
-        savedTrips={initialSavedTrips}
-        onLoadSavedTrip={handleLoadSavedTrip}
+        savedTrips={savedTrips}
+        onTripSaved={handleTripSaved}
         onUpdate={updateWaypoint}
         onAdd={addWaypoint}
         onRemove={removeWaypoint}
@@ -157,6 +168,12 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
         onCalculate={calculateRoute}
         onClear={clearRoute}
         onClearError={clearError}
+      />
+
+      {/* Floating panel danh sách hành trình máy chủ (bên phải độc lập) */}
+      <SavedItinerariesPanel
+        savedTrips={savedTrips}
+        onLoadTrip={handleLoadSavedTrip}
       />
     </div>
   );

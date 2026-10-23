@@ -1,17 +1,20 @@
 export interface Place {
-    id: string;
+    id: string | number;
     name: string;
     slug: string;
-    image: string;
-    district: string;
-    ward: string;
-    rating: number;
     description: string;
+    thumbnail: string;
+    image?: string;
+    district?: string;
+    ward?: string;
+    rating?: number;
     lat: number;
     lng: number;
-    thumbnail: string;
     category: string;
     price: string;
+    openTime?: string;
+    experience?: string;
+    province?: number;
 }
 export interface Itinerary {
     id: string;

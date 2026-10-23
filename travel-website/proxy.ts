@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Chỉ can thiệp vào các yêu cầu hướng tới cụm Route Handlers /api/vietmap/*
   if (request.nextUrl.pathname.startsWith('/api/vietmap')) {
     const startTime = Date.now();
     
-    // Ghi log yêu cầu tại tầng biên (Edge Runtime/Middleware logging)
+    // Ghi log yêu cầu tại tầng biên (Edge Runtime/Proxy logging)
     const method = request.method;
     const pathname = request.nextUrl.pathname;
     
@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('X-Vietmap-Proxy', 'Nextjs-AppRouter-Secure');
 
     // In nhật ký truy cập vào terminal server
-    console.log(`[Middleware Proxy] ${method} ${pathname} - Processed in ${duration}ms`);
+    console.log(`[Edge Proxy] ${method} ${pathname} - Processed in ${duration}ms`);
 
     return response;
   }

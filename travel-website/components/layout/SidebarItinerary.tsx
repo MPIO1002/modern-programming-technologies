@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faChevronLeft, faMap, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,8 +10,19 @@ import {
   removeCustomItineraryPlace,
 } from "@/services/itinerary-storage";
 
+interface SavedPlace {
+  id: string | number;
+  name: string;
+  ward?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  image?: string;
+  thumbnail?: string;
+}
+
 export default function SidebarItinerary() {
-  const [savedPlaces, setSavedPlaces] = useState<any[]>([]);
+  const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -48,7 +60,9 @@ export default function SidebarItinerary() {
   };
 
   useEffect(() => {
-    loadSavedPlaces();
+    queueMicrotask(() => {
+      void loadSavedPlaces();
+    });
 
     const handleStorageChange = () => {
       loadSavedPlaces();
@@ -114,8 +128,14 @@ export default function SidebarItinerary() {
             savedPlaces.map((place, index) => (
               <div key={`${place.id}-${index}`} className="bg-white dark:bg-[#0F4C75]/20 border border-slate-200 dark:border-[#3282B8]/30 rounded-lg p-3 shadow-sm flex gap-3 relative group">
                 {(place.image || place.thumbnail) ? (
-                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-100">
-                    <img src={place.image || place.thumbnail} alt={place.name} className="w-full h-full object-cover" />
+                  <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-slate-100">
+                    <Image
+                      src={place.image || place.thumbnail || ""}
+                      alt={place.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
                   </div>
                 ) : (
                   <div className="w-16 h-16 rounded-md flex-shrink-0 bg-white border border-slate-100 flex items-center justify-center">

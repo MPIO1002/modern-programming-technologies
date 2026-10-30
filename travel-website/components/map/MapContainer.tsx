@@ -66,7 +66,9 @@ export default function MapContainer({ initialSavedTrips = [] }: MapContainerPro
 
   useEffect(() => {
     if (initialSavedTrips.length > 0) {
-      setSavedTrips(initialSavedTrips);
+      queueMicrotask(() => {
+        setSavedTrips(initialSavedTrips);
+      });
     }
   }, [initialSavedTrips]);
 

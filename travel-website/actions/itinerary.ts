@@ -55,7 +55,7 @@ export async function saveTripItineraryAction(
       `Lộ trình ${input.waypoints[0].name} - ${input.waypoints[input.waypoints.length - 1].name}`;
 
     const record: SavedItineraryRecord = {
-      id: `trip_${Date.now()}`,
+      id: `trip_${crypto.randomUUID()}`,
       userId: guestId,
       tripName,
       waypoints: input.waypoints,
@@ -93,7 +93,7 @@ export async function getMySavedItinerariesAction(): Promise<SavedItineraryRecor
     const guestId = cookieStore.get("tourist_guest_id")?.value;
     if (!guestId) return [];
     return await getSavedItineraries(guestId);
-  } catch (error) {
+  } catch {
     return [];
   }
 }

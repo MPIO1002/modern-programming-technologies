@@ -36,10 +36,13 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Vietmap place error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch place details", message: error.message },
+      {
+        error: "Failed to fetch place details",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

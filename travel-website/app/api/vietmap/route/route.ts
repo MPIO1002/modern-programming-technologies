@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { waypoints, vehicle } = body;
 
     // Use VIETMAP_API_KEY from environment variables on the server
-    const apiKey = process.env.VIETMAP_API_KEY || process.env.NEXT_PUBLIC_VIETMAP_API_KEY;
+    const apiKey = process.env.VIETMAP_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

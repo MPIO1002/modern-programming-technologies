@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import PlaceExplorer from "./components/PlaceExplorer";
 import PlaceGridSkeleton from "./components/PlaceGridSkeleton";
 import PlaceSearch from "./components/PlaceSearch";
@@ -7,6 +6,7 @@ import { normalizePlaces } from "@/services/places.service";
 
 async function PlacesContent() {
   const apiUrl = process.env.MOCKAPI_PLACES_URL;
+  let places;
 
   try {
     if (!apiUrl) {
@@ -21,9 +21,7 @@ async function PlacesContent() {
       throw new Error(`Không thể lấy dữ liệu địa điểm (${response.status})`);
     }
 
-    const places = normalizePlaces(await response.json());
-
-    return <PlaceExplorer places={places} />;
+    places = normalizePlaces(await response.json());
   } catch (error) {
     console.error("Load places error:", error);
 
@@ -37,6 +35,8 @@ async function PlacesContent() {
       </section>
     );
   }
+
+  return <PlaceExplorer places={places} />;
 }
 
 export default function PlacesPage() {

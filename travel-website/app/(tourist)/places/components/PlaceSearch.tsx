@@ -44,8 +44,6 @@ export default function PlaceSearch() {
     const trimmedQuery = query.trim();
 
     if (trimmedQuery.length < 2) {
-      setSuggestions([]);
-      setError("");
       return;
     }
 
@@ -213,9 +211,14 @@ export default function PlaceSearch() {
             <input
               value={query}
               onChange={(event) => {
-                setQuery(event.target.value);
+                const nextQuery = event.target.value;
+                setQuery(nextQuery);
                 setCurrentAddress("");
                 setShowResults(true);
+                setError("");
+                if (nextQuery.trim().length < 2) {
+                  setSuggestions([]);
+                }
               }}
               onFocus={() => {
                 if (suggestions.length > 0) {

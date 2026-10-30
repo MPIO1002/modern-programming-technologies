@@ -21,7 +21,7 @@ async function getPlaceData(slug: string): Promise<Place | null> {
     const exactData = data.find((item) => item.slug === slug);
 
     return exactData || null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

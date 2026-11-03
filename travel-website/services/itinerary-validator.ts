@@ -19,7 +19,7 @@ export interface ValidationResult {
   safeVehicle: string;
 }
 
-const ALLOWED_VEHICLES = ["car", "bike", "foot", "motorcycle"];
+const ALLOWED_VEHICLES = ["car", "foot", "motorcycle"];
 
 /**
  * Thẩm định dữ liệu đầu vào phía máy chủ (Defense-in-Depth):

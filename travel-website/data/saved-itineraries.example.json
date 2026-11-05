@@ -1,0 +1,75 @@
+[
+  {
+    "id": "trip_0d3d391d-bad5-4cb0-8908-4a18e05fa611",
+    "userId": "guest_70fd1906-967",
+    "tripName": "Lộ trình Chợ nổi Cái Răng - Tam Đảo",
+    "waypoints": [
+      {
+        "name": "Chợ nổi Cái Răng",
+        "lat": 10.008825,
+        "lng": 105.748913
+      },
+      {
+        "name": "Vườn quốc gia Ba Bể",
+        "lat": 22.242778,
+        "lng": 105.621667
+      },
+      {
+        "name": "Tam Đảo",
+        "lat": 21.455833,
+        "lng": 105.644722
+      }
+    ],
+    "vehicle": "car",
+    "distanceKm": 0,
+    "durationMin": 0,
+    "createdAt": "2026-11-04T13:51:28.777Z"
+  },
+  {
+    "id": "trip_100c9d21-118f-41dc-9a6c-de10b31149d8",
+    "userId": "guest_70fd1906-967",
+    "tripName": "Lộ trình Dinh Độc Lập - Phố cổ Hội An",
+    "waypoints": [
+      {
+        "name": "Dinh Độc Lập",
+        "lat": 10.7769995,
+        "lng": 106.6927272
+      },
+      {
+        "name": "Lăng Chủ tịch Hồ Chí Minh",
+        "lat": 21.036944,
+        "lng": 105.834722
+      },
+      {
+        "name": "Phố cổ Hội An",
+        "lat": 15.880058,
+        "lng": 108.338047
+      }
+    ],
+    "vehicle": "car",
+    "distanceKm": 0,
+    "durationMin": 0,
+    "createdAt": "2026-11-04T13:50:17.934Z"
+  },
+  {
+    "id": "trip_6bfdb79d-a7b7-45fc-9aab-617418a5e4c4",
+    "userId": "guest_05da36a5-c04",
+    "tripName": "Lộ trình Chợ Bến Thành - Dinh Độc Lập",
+    "waypoints": [
+      {
+        "name": "Chợ Bến Thành",
+        "lat": 10.7725168,
+        "lng": 106.6980208
+      },
+      {
+        "name": "Dinh Độc Lập",
+        "lat": 10.7769995,
+        "lng": 106.6927272
+      }
+    ],
+    "vehicle": "car",
+    "distanceKm": 1.16,
+    "durationMin": 2,
+    "createdAt": "2026-10-30T03:54:39.790Z"
+  }
+]

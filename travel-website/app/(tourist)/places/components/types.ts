@@ -1,12 +1,3 @@
-export type AdminOption = {
-  code: string;
-  name: string;
-  name_with_type: string;
-  slug: string;
-  type: string;
-  parent_code?: string;
-};
-
 export type Boundary = {
   type: number;
   id: number;
@@ -23,12 +14,6 @@ export type Suggestion = {
   boundaries?: Boundary[];
   categories?: string[];
   distance?: number;
-};
-
-export type PlaceFiltersValue = {
-  cityId: string;
-  wardId: string;
-  category: string;
 };
 
 export type Place = {
